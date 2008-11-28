@@ -1027,31 +1027,152 @@ PHP_MINFO_FUNCTION(libevent)
 }
 /* }}} */
 
+/* {{{ arginfo */
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 3) || PHP_MAJOR_VERSION > 5
+# define EVENT_ARGINFO
+#else
+# define EVENT_ARGINFO static
+#endif
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_loop, 0, 0, 1)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, flags)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_loopbreak, 0, 0, 1)
+	ZEND_ARG_INFO(0, base)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_loopexit, 0, 0, 1)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, timeout)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, event)
+	ZEND_ARG_INFO(0, base)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO(arginfo_event_new, 0)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_add, 0, 0, 1)
+	ZEND_ARG_INFO(0, event)
+	ZEND_ARG_INFO(0, timeout)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_set, 0, 0, 4)
+	ZEND_ARG_INFO(0, event)
+	ZEND_ARG_INFO(0, fd)
+	ZEND_ARG_INFO(0, events)
+	ZEND_ARG_INFO(0, callback)
+	ZEND_ARG_INFO(0, arg)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_del, 0, 0, 1)
+	ZEND_ARG_INFO(0, event)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_new, 0, 0, 4)
+	ZEND_ARG_INFO(0, stream)
+	ZEND_ARG_INFO(0, readcb)
+	ZEND_ARG_INFO(0, writecb)
+	ZEND_ARG_INFO(0, errorcb)
+	ZEND_ARG_INFO(0, arg)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_free, 0, 0, 1)
+	ZEND_ARG_INFO(0, bevent)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_base_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, base)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_priority_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, priority)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_write, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, data)
+	ZEND_ARG_INFO(0, data_size)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_read, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, data_size)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_disable, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, events)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_timeout_set, 0, 0, 3)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, read_timeout)
+	ZEND_ARG_INFO(0, write_timeout)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_watermark_set, 0, 0, 4)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, events)
+	ZEND_ARG_INFO(0, lowmark)
+	ZEND_ARG_INFO(0, highmark)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_fd_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, fd)
+ZEND_END_ARG_INFO()
+/* }}} */
+
 /* {{{ libevent_functions[]
  */
 const zend_function_entry libevent_functions[] = {
-	PHP_FE(event_base_new, NULL)
-	PHP_FE(event_base_free, NULL)
-	PHP_FE(event_base_loop, NULL)
-	PHP_FE(event_base_loopbreak, NULL)
-	PHP_FE(event_base_loopexit, NULL)
-	PHP_FE(event_base_set, NULL)
-	PHP_FE(event_new, NULL)
-	PHP_FE(event_free, NULL)
-	PHP_FE(event_add, NULL)
-	PHP_FE(event_set, NULL)
-	PHP_FE(event_del, NULL)
-	PHP_FE(event_buffer_new, NULL)
-	PHP_FE(event_buffer_free, NULL)
-	PHP_FE(event_buffer_base_set, NULL)
-	PHP_FE(event_buffer_priority_set, NULL)
-	PHP_FE(event_buffer_write, NULL)
-	PHP_FE(event_buffer_read, NULL)
-	PHP_FE(event_buffer_enable, NULL)
-	PHP_FE(event_buffer_disable, NULL)
-	PHP_FE(event_buffer_timeout_set, NULL)
-	PHP_FE(event_buffer_watermark_set, NULL)
-	PHP_FE(event_buffer_fd_set, NULL)
+	PHP_FE(event_base_new, 				arginfo_event_new)
+	PHP_FE(event_base_free, 			arginfo_event_base_loopbreak)
+	PHP_FE(event_base_loop, 			arginfo_event_base_loop)
+	PHP_FE(event_base_loopbreak, 		arginfo_event_base_loopbreak)
+	PHP_FE(event_base_loopexit, 		arginfo_event_base_loopexit)
+	PHP_FE(event_base_set, 				arginfo_event_base_set)
+	PHP_FE(event_new, 					arginfo_event_new)
+	PHP_FE(event_free, 					arginfo_event_del)
+	PHP_FE(event_add, 					arginfo_event_add)
+	PHP_FE(event_set, 					arginfo_event_set)
+	PHP_FE(event_del, 					arginfo_event_del)
+	PHP_FE(event_buffer_new, 			arginfo_event_buffer_new)
+	PHP_FE(event_buffer_free, 			arginfo_event_buffer_free)
+	PHP_FE(event_buffer_base_set, 		arginfo_event_buffer_base_set)
+	PHP_FE(event_buffer_priority_set, 	arginfo_event_buffer_priority_set)
+	PHP_FE(event_buffer_write, 			arginfo_event_buffer_write)
+	PHP_FE(event_buffer_read, 			arginfo_event_buffer_read)
+	PHP_FE(event_buffer_enable, 		arginfo_event_buffer_disable)
+	PHP_FE(event_buffer_disable, 		arginfo_event_buffer_disable)
+	PHP_FE(event_buffer_timeout_set, 	arginfo_event_buffer_timeout_set)
+	PHP_FE(event_buffer_watermark_set, 	arginfo_event_buffer_watermark_set)
+	PHP_FE(event_buffer_fd_set, 		arginfo_event_buffer_fd_set)
 	{NULL, NULL, NULL}
 };
 /* }}} */
