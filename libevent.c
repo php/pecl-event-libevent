@@ -57,6 +57,9 @@ typedef struct _php_event_t { /* {{{ */
 	int stream_id;
 	php_event_base_t *base;
 	php_event_callback_t *callback;
+#ifdef ZTS
+	void ***thread_ctx;
+#endif
 } php_event_t;
 /* }}} */
 
@@ -68,6 +71,9 @@ typedef struct _php_bufferevent_t { /* {{{ */
 	zval *writecb;
 	zval *errorcb;
 	zval *arg;
+#ifdef ZTS
+	void ***thread_ctx;
+#endif
 } php_bufferevent_t;
 /* }}} */
 
@@ -165,7 +171,7 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 	php_event_callback_t *callback;
 	zval retval;
 	int base_id;
-	TSRMLS_FETCH();
+	TSRMLS_FETCH_FROM_CTX(event ? event->thread_ctx : NULL);
 
 	if (!event || !event->callback || !event->base) {
 		return;
@@ -212,7 +218,7 @@ static void _php_bufferevent_readcb(struct bufferevent *be, void *arg) /* {{{ */
 	zval retval;
 	int base_id;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
-	TSRMLS_FETCH();
+	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
 	if (!bevent || !bevent->base || !bevent->readcb) {
 		return;
@@ -253,7 +259,7 @@ static void _php_bufferevent_writecb(struct bufferevent *be, void *arg) /* {{{ *
 	zval retval;
 	int base_id;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
-	TSRMLS_FETCH();
+	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
 	if (!bevent || !bevent->base || !bevent->writecb) {
 		return;
@@ -294,7 +300,7 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 	zval retval;
 	int base_id;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
-	TSRMLS_FETCH();
+	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
 	if (!bevent || !bevent->base || !bevent->writecb) {
 		return;
@@ -502,6 +508,7 @@ static PHP_FUNCTION(event_new)
 	event->stream_id = -1;
 	event->callback = NULL;
 	event->base = NULL;
+	TSRMLS_SET_CTX(event->thread_ctx);
 
 	event->rsrc_id = zend_list_insert(event, le_event);
 	RETURN_RESOURCE(event->rsrc_id);
@@ -699,6 +706,8 @@ static PHP_FUNCTION(event_buffer_new)
 	} else {
 		bevent->arg = NULL;
 	}
+
+	TSRMLS_SET_CTX(bevent->thread_ctx);
 
 	bevent->rsrc_id = zend_list_insert(bevent, le_bufferevent);
 	RETURN_RESOURCE(bevent->rsrc_id);
