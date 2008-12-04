@@ -581,7 +581,7 @@ static PHP_FUNCTION(event_set)
 	}
 
 	if (!zend_is_callable(zcallback, 0, &func_name TSRMLS_CC)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a invalid callback", func_name);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid callback", func_name);
 		efree(func_name);
 		RETURN_FALSE;
 	}
@@ -648,7 +648,7 @@ static PHP_FUNCTION(event_buffer_new)
 
 	if (Z_TYPE_P(zreadcb) != IS_NULL) {
 		if (!zend_is_callable(zreadcb, 0, &func_name TSRMLS_CC)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a invalid read callback", func_name);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid read callback", func_name);
 			efree(func_name);
 			RETURN_FALSE;
 		}
@@ -659,7 +659,7 @@ static PHP_FUNCTION(event_buffer_new)
 
 	if (Z_TYPE_P(zwritecb) != IS_NULL) {
 		if (!zend_is_callable(zwritecb, 0, &func_name TSRMLS_CC)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a invalid write callback", func_name);
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid write callback", func_name);
 			efree(func_name);
 			RETURN_FALSE;
 		}
@@ -669,7 +669,7 @@ static PHP_FUNCTION(event_buffer_new)
 	}
 
 	if (!zend_is_callable(zerrorcb, 0, &func_name TSRMLS_CC)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a invalid error callback", func_name);
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid error callback", func_name);
 		efree(func_name);
 		RETURN_FALSE;
 	}
@@ -800,8 +800,8 @@ static PHP_FUNCTION(event_buffer_write)
 
 	if (ZEND_NUM_ARGS() < 3) {
 		data_size = data_len;
-	} else if (data_size < 0) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "data_size cannot be less than zero");
+	} else if (data_size < 0 || data_size > data_len) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "data_size out of range");
 		RETURN_FALSE;
 	}
 
