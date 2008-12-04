@@ -42,6 +42,7 @@ ZEND_GET_MODULE(libevent)
 typedef struct _php_event_base_t { /* {{{ */
 	struct event_base *base;
 	int rsrc_id;
+	zend_uint events;
 } php_event_base_t;
 /* }}} */
 
@@ -118,6 +119,7 @@ static void _php_event_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) /* {{{ */
 
 	if (event->base) {
 		base_id = event->base->rsrc_id;
+		--event->base->events;
 	}
 	if (event->stream_id >= 0) {
 		zend_list_delete(event->stream_id);
@@ -141,6 +143,7 @@ static void _php_bufferevent_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) /* {{{ *
 
 	if (bevent->base) {
 		base_id = bevent->base->rsrc_id;
+		--bevent->base->events;
 	}
 	if (bevent->readcb) {
 		zval_ptr_dtor(&(bevent->readcb));
@@ -170,16 +173,11 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 	php_event_t *event = (php_event_t *)arg;
 	php_event_callback_t *callback;
 	zval retval;
-	int base_id;
 	TSRMLS_FETCH_FROM_CTX(event ? event->thread_ctx : NULL);
 
 	if (!event || !event->callback || !event->base) {
 		return;
 	}
-
-	base_id = event->base->rsrc_id;
-	zend_list_addref(event->rsrc_id);
-	zend_list_addref(event->base->rsrc_id);
 
 	callback = event->callback;
 
@@ -190,12 +188,8 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 	MAKE_STD_ZVAL(args[1]);
 	ZVAL_LONG(args[1], events);
 
-	if (callback->arg) {
-		args[2] = callback->arg;
-	} else {
-		MAKE_STD_ZVAL(args[2]);
-		ZVAL_NULL(args[2]);
-	}
+	args[2] = callback->arg;
+	Z_ADDREF_P(callback->arg);
 	
 	if (call_user_function(EG(function_table), NULL, callback->func, &retval, 3, args TSRMLS_CC) == SUCCESS) {
 		zval_dtor(&retval);
@@ -203,12 +197,8 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 
 	zval_ptr_dtor(&(args[0]));
 	zval_ptr_dtor(&(args[1]));
-	if (!callback->arg) {
-		zval_ptr_dtor(&(args[2])); 
-	} 
+	zval_ptr_dtor(&(args[2])); 
 	
-	zend_list_delete(event->rsrc_id); /* event and its contents is undefined after this */
-	zend_list_delete(base_id);
 }
 /* }}} */
 
@@ -216,7 +206,6 @@ static void _php_bufferevent_readcb(struct bufferevent *be, void *arg) /* {{{ */
 {
 	zval *args[2];
 	zval retval;
-	int base_id;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
 	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
@@ -224,32 +213,20 @@ static void _php_bufferevent_readcb(struct bufferevent *be, void *arg) /* {{{ */
 		return;
 	}
 
-	base_id = bevent->base->rsrc_id;
-	zend_list_addref(bevent->rsrc_id);
-	zend_list_addref(bevent->base->rsrc_id);
-
 	MAKE_STD_ZVAL(args[0]);
 	ZVAL_RESOURCE(args[0], bevent->rsrc_id);
 	zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
 	
-	if (bevent->arg) {
-		args[1] = bevent->arg;
-	} else {
-		MAKE_STD_ZVAL(args[1]);
-		ZVAL_NULL(args[1]);
-	}
+	args[1] = bevent->arg;
+	Z_ADDREF_P(args[1]);
 	
 	if (call_user_function(EG(function_table), NULL, bevent->readcb, &retval, 2, args TSRMLS_CC) == SUCCESS) {
 		zval_dtor(&retval);
 	}
 
 	zval_ptr_dtor(&(args[0]));
-	if (!bevent->arg) {
-		zval_ptr_dtor(&(args[1])); 
-	} 
-	
-	zend_list_delete(bevent->rsrc_id);
-	zend_list_delete(base_id);
+	zval_ptr_dtor(&(args[1])); 
+
 }
 /* }}} */
 
@@ -257,7 +234,6 @@ static void _php_bufferevent_writecb(struct bufferevent *be, void *arg) /* {{{ *
 {
 	zval *args[2];
 	zval retval;
-	int base_id;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
 	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
@@ -265,32 +241,20 @@ static void _php_bufferevent_writecb(struct bufferevent *be, void *arg) /* {{{ *
 		return;
 	}
 
-	base_id = bevent->base->rsrc_id;
-	zend_list_addref(bevent->rsrc_id);
-	zend_list_addref(bevent->base->rsrc_id);
-
 	MAKE_STD_ZVAL(args[0]);
 	ZVAL_RESOURCE(args[0], bevent->rsrc_id);
 	zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
 	
-	if (bevent->arg) {
-		args[1] = bevent->arg;
-	} else {
-		MAKE_STD_ZVAL(args[1]);
-		ZVAL_NULL(args[1]);
-	}
+	args[1] = bevent->arg;
+	Z_ADDREF_P(args[1]);
 	
 	if (call_user_function(EG(function_table), NULL, bevent->writecb, &retval, 2, args TSRMLS_CC) == SUCCESS) {
 		zval_dtor(&retval);
 	}
 
 	zval_ptr_dtor(&(args[0]));
-	if (!bevent->arg) {
-		zval_ptr_dtor(&(args[1])); 
-	} 
+	zval_ptr_dtor(&(args[1])); 
 	
-	zend_list_delete(bevent->rsrc_id);
-	zend_list_delete(base_id);
 }
 /* }}} */
 
@@ -298,17 +262,12 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 {
 	zval *args[3];
 	zval retval;
-	int base_id;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
 	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
 	if (!bevent || !bevent->base || !bevent->writecb) {
 		return;
 	}
-
-	base_id = bevent->base->rsrc_id;
-	zend_list_addref(bevent->rsrc_id);
-	zend_list_addref(bevent->base->rsrc_id);
 
 	MAKE_STD_ZVAL(args[0]);
 	ZVAL_RESOURCE(args[0], bevent->rsrc_id);
@@ -317,12 +276,8 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 	MAKE_STD_ZVAL(args[1]);
 	ZVAL_LONG(args[1], what);
 
-	if (bevent->arg) {
-		args[2] = bevent->arg;
-	} else {
-		MAKE_STD_ZVAL(args[2]);
-		ZVAL_NULL(args[2]);
-	}
+	args[2] = bevent->arg;
+	Z_ADDREF_P(args[2]);
 	
 	if (call_user_function(EG(function_table), NULL, bevent->errorcb, &retval, 3, args TSRMLS_CC) == SUCCESS) {
 		zval_dtor(&retval);
@@ -330,17 +285,10 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 
 	zval_ptr_dtor(&(args[0]));
 	zval_ptr_dtor(&(args[1]));
-	if (!bevent->arg) {
-		zval_ptr_dtor(&(args[2])); 
-	} 
+	zval_ptr_dtor(&(args[2])); 
 	
-	zend_list_delete(bevent->rsrc_id);
-	zend_list_delete(base_id);
 }
 /* }}} */
-
-/* }}} */
-
 
 /* {{{ proto resource event_base_new() 
  */
@@ -359,6 +307,8 @@ static PHP_FUNCTION(event_base_new)
 		RETURN_FALSE;
 	}
 
+	base->events = 0;
+
 	base->rsrc_id = zend_list_insert(base, le_event_base);
 	RETURN_RESOURCE(base->rsrc_id);
 }
@@ -376,6 +326,12 @@ static PHP_FUNCTION(event_base_free)
 	}
 
 	ZVAL_TO_BASE(zbase, base);
+
+	if (base->events > 0) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "base has events attached to it and cannot be freed");
+		RETURN_FALSE;
+	}
+
 	zend_list_delete(base->rsrc_id);
 }
 /* }}} */
@@ -478,9 +434,11 @@ static PHP_FUNCTION(event_base_set)
 		if (base != old_base) {
 			/* make sure the base is destroyed after the event */
 			zend_list_addref(base->rsrc_id);
+			++base->events;
 		}
 
 		if (old_base) {
+			--old_base->events;
 			zend_list_delete(old_base->rsrc_id);
 		}
 
@@ -597,6 +555,8 @@ static PHP_FUNCTION(event_set)
 	zval_add_ref(&zcallback);
 	if (zarg) {
 		zval_add_ref(&zarg);
+	} else {
+		ALLOC_INIT_ZVAL(zarg);
 	}
 
 	callback = emalloc(sizeof(php_event_callback_t));
@@ -704,7 +664,7 @@ static PHP_FUNCTION(event_buffer_new)
 		zval_add_ref(&zarg);
 		bevent->arg = zarg;
 	} else {
-		bevent->arg = NULL;
+		ALLOC_INIT_ZVAL(bevent->arg);
 	}
 
 	TSRMLS_SET_CTX(bevent->thread_ctx);
@@ -753,9 +713,11 @@ static PHP_FUNCTION(event_buffer_base_set)
 		if (base != old_base) {
 			/* make sure the base is destroyed after the event */
 			zend_list_addref(base->rsrc_id);
+			++base->events;
 		}
 
 		if (old_base) {
+			--old_base->events;
 			zend_list_delete(old_base->rsrc_id);
 		}
 
