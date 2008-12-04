@@ -4,6 +4,7 @@ PHP_ARG_WITH(libevent, for libevent support,
 [  --with-libevent             Include libevent support])
 
 if test "$PHP_LIBEVENT" != "no"; then
+  SEARCH_PATH="/usr /usr/local"
   SEARCH_FOR="/include/event.h"
 
   if test "$PHP_LIBEVENT" = "yes"; then
