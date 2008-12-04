@@ -30,6 +30,30 @@ extern zend_module_entry libevent_module_entry;
 #include "TSRM.h"
 #endif
 
+#ifndef zend_always_inline
+# if defined(__GNUC__)
+#  define zend_always_inline inline __attribute__((always_inline))
+# elif defined(_MSC_VER)
+#  define zend_always_inline __forceinline
+# else
+#  define zend_always_inline inline
+# endif
+#endif
+
+#ifndef Z_ADDREF_P
+#define Z_ADDREF_P(pz)			zval_addref_p(pz)
+static zend_always_inline zend_uint zval_addref_p(zval* pz) {
+	return ++pz->refcount;
+}
+#endif
+
+#ifndef Z_DELREF_P
+#define Z_DELREF_P(pz)			zval_delref_p(pz)
+static zend_always_inline zend_uint zval_delref_p(zval* pz) {
+	return --pz->refcount;
+}
+#endif
+
 #endif	/* PHP_LIBEVENT_H */
 
 
