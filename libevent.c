@@ -1121,7 +1121,10 @@ ZEND_END_ARG_INFO()
 
 /* {{{ libevent_functions[]
  */
-const zend_function_entry libevent_functions[] = {
+#if ZEND_MODULE_API_NO >= 20071006
+const 
+#endif
+zend_function_entry libevent_functions[] = {
 	PHP_FE(event_base_new, 				arginfo_event_new)
 	PHP_FE(event_base_free, 			arginfo_event_base_loopbreak)
 	PHP_FE(event_base_loop, 			arginfo_event_base_loop)
