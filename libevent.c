@@ -317,6 +317,9 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 }
 /* }}} */
 
+/* }}} */
+
+
 /* {{{ proto resource event_base_new() 
  */
 static PHP_FUNCTION(event_base_new)
@@ -493,6 +496,7 @@ static PHP_FUNCTION(event_new)
 	event->stream_id = -1;
 	event->callback = NULL;
 	event->base = NULL;
+	event->in_free = 0;
 	TSRMLS_SET_CTX(event->thread_ctx);
 
 	event->rsrc_id = zend_list_insert(event, le_event);
@@ -618,6 +622,86 @@ static PHP_FUNCTION(event_del)
 	event_del(event->event);	
 }
 /* }}} */
+
+
+/* {{{ proto bool event_timer_set(resource event, mixed callback[, mixed arg]) 
+ */
+static PHP_FUNCTION(event_timer_set)
+{
+	zval *zevent, *zcallback, *zarg = NULL;
+	php_event_t *event;
+	php_event_callback_t *callback, *old_callback;
+	char *func_name;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rz|z", &zevent, &zcallback, &zarg) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_EVENT(zevent, event);
+
+	if (!zend_is_callable(zcallback, 0, &func_name TSRMLS_CC)) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid callback", func_name);
+		efree(func_name);
+		RETURN_FALSE;
+	}
+	efree(func_name);
+
+	zval_add_ref(&zcallback);
+	if (zarg) {
+		zval_add_ref(&zarg);
+	} else {
+		ALLOC_INIT_ZVAL(zarg);
+	}
+
+	callback = emalloc(sizeof(php_event_callback_t));
+	callback->func = zcallback;
+	callback->arg = zarg;
+
+	old_callback = event->callback;
+	event->callback = callback;
+	event->stream_id = -1;
+
+	event_set(event->event, -1, 0, _php_event_callback, event);
+
+	if (old_callback) {
+		_php_event_callback_free(old_callback);
+	}
+}
+/* }}} */
+
+/* {{{ proto bool event_timer_pending(resource event[, int timeout])
+ */
+static PHP_FUNCTION(event_timer_pending)
+{
+	zval *zevent;
+	php_event_t *event;
+	int ret;
+	long timeout = -1;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zevent, &timeout) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_EVENT(zevent, event);
+
+	if (timeout < 0) {
+		ret = event_pending(event->event, EV_TIMEOUT, NULL);
+	} else {
+		struct timeval time;
+		
+		time.tv_usec = timeout % 1000000;
+		time.tv_sec = timeout / 1000000;
+		ret = event_pending(event->event, EV_TIMEOUT, &time);
+	}
+
+	if (ret != 0) {
+		RETURN_FALSE;
+	}
+
+	RETURN_TRUE;
+}
+/* }}} */
+
 
 
 /* {{{ proto resource event_buffer_new(resource stream, mixed readcb, mixed writecb, mixed errorcb[, mixed arg]) 
@@ -1121,6 +1205,19 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_fd_set, 0, 0, 2)
 	ZEND_ARG_INFO(0, bevent)
 	ZEND_ARG_INFO(0, fd)
 ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_timer_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, event)
+	ZEND_ARG_INFO(0, callback)
+	ZEND_ARG_INFO(0, arg)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_timer_pending, 0, 0, 1)
+	ZEND_ARG_INFO(0, event)
+	ZEND_ARG_INFO(0, timeout)
+ZEND_END_ARG_INFO()
 /* }}} */
 
 /* {{{ libevent_functions[]
@@ -1151,6 +1248,11 @@ zend_function_entry libevent_functions[] = {
 	PHP_FE(event_buffer_timeout_set, 	arginfo_event_buffer_timeout_set)
 	PHP_FE(event_buffer_watermark_set, 	arginfo_event_buffer_watermark_set)
 	PHP_FE(event_buffer_fd_set, 		arginfo_event_buffer_fd_set)
+	PHP_FALIAS(event_timer_new,			event_new,		arginfo_event_set)
+	PHP_FE(event_timer_set,				arginfo_event_timer_set)
+	PHP_FE(event_timer_pending,			arginfo_event_timer_pending)
+	PHP_FALIAS(event_timer_add,			event_add,		arginfo_event_add)
+	PHP_FALIAS(event_timer_del,			event_del,		arginfo_event_del)
 	{NULL, NULL, NULL}
 };
 /* }}} */
@@ -1180,6 +1282,11 @@ function_entry libevent_functions[] = {
 	PHP_FE(event_buffer_timeout_set, 	NULL)
 	PHP_FE(event_buffer_watermark_set, 	NULL)
 	PHP_FE(event_buffer_fd_set, 		NULL)
+	PHP_FALIAS(event_timer_new,			event_new,	NULL)
+	PHP_FE(event_timer_set,				NULL)
+	PHP_FE(event_timer_pending,			NULL)
+	PHP_FALIAS(event_timer_add,			event_add,	NULL)
+	PHP_FALIAS(event_timer_del,			event_del,	NULL)
 	{NULL, NULL, NULL}
 };
 /* }}} */
