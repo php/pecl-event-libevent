@@ -31,6 +31,26 @@
 
 #include <event.h>
 
+#if PHP_MAJOR_VERSION < 5
+# ifdef PHP_WIN32
+typedef SOCKET php_socket_t;
+# else
+typedef int php_socket_t;
+# endif
+
+# ifdef ZTS
+#  define TSRMLS_FETCH_FROM_CTX(ctx)  void ***tsrm_ls = (void ***) ctx
+#  define TSRMLS_SET_CTX(ctx)     ctx = (void ***) tsrm_ls
+# else
+#  define TSRMLS_FETCH_FROM_CTX(ctx)
+#  define TSRMLS_SET_CTX(ctx)
+# endif
+
+# ifndef Z_ADDREF_P
+#  define Z_ADDREF_P(x) (x)->refcount++
+# endif
+#endif
+
 static int le_event_base;
 static int le_event;
 static int le_bufferevent;
@@ -934,7 +954,7 @@ static PHP_FUNCTION(event_buffer_fd_set)
 
 /* {{{ PHP_MINIT_FUNCTION
  */
-PHP_MINIT_FUNCTION(libevent)
+static PHP_MINIT_FUNCTION(libevent)
 {
 	le_event_base = zend_register_list_destructors_ex(_php_event_base_dtor, NULL, "event base", module_number);
 	le_event = zend_register_list_destructors_ex(_php_event_dtor, NULL, "event", module_number);
@@ -952,33 +972,9 @@ PHP_MINIT_FUNCTION(libevent)
 }
 /* }}} */
 
-/* {{{ PHP_MSHUTDOWN_FUNCTION
- */
-PHP_MSHUTDOWN_FUNCTION(libevent)
-{
-	return SUCCESS;
-}
-/* }}} */
-
-/* {{{ PHP_RINIT_FUNCTION
- */
-PHP_RINIT_FUNCTION(libevent)
-{
-	return SUCCESS;
-}
-/* }}} */
-
-/* {{{ PHP_RSHUTDOWN_FUNCTION
- */
-PHP_RSHUTDOWN_FUNCTION(libevent)
-{
-	return SUCCESS;
-}
-/* }}} */
-
 /* {{{ PHP_MINFO_FUNCTION
  */
-PHP_MINFO_FUNCTION(libevent)
+static PHP_MINFO_FUNCTION(libevent)
 {
 	char buf[64];
 
@@ -998,6 +994,7 @@ PHP_MINFO_FUNCTION(libevent)
 }
 /* }}} */
 
+#if PHP_MAJOR_VERSION >= 5
 /* {{{ arginfo */
 #if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 3) || PHP_MAJOR_VERSION > 5
 # define EVENT_ARGINFO
@@ -1150,6 +1147,37 @@ zend_function_entry libevent_functions[] = {
 	{NULL, NULL, NULL}
 };
 /* }}} */
+#else
+/* {{{ libevent_functions[]
+ */
+function_entry libevent_functions[] = {
+	PHP_FE(event_base_new, 				NULL)
+	PHP_FE(event_base_free, 			NULL)
+	PHP_FE(event_base_loop, 			NULL)
+	PHP_FE(event_base_loopbreak, 		NULL)
+	PHP_FE(event_base_loopexit, 		NULL)
+	PHP_FE(event_base_set, 				NULL)
+	PHP_FE(event_new, 					NULL)
+	PHP_FE(event_free, 					NULL)
+	PHP_FE(event_add, 					NULL)
+	PHP_FE(event_set, 					NULL)
+	PHP_FE(event_del, 					NULL)
+	PHP_FE(event_buffer_new, 			NULL)
+	PHP_FE(event_buffer_free, 			NULL)
+	PHP_FE(event_buffer_base_set, 		NULL)
+	PHP_FE(event_buffer_priority_set, 	NULL)
+	PHP_FE(event_buffer_write, 			NULL)
+	PHP_FE(event_buffer_read, 			NULL)
+	PHP_FE(event_buffer_enable, 		NULL)
+	PHP_FE(event_buffer_disable, 		NULL)
+	PHP_FE(event_buffer_timeout_set, 	NULL)
+	PHP_FE(event_buffer_watermark_set, 	NULL)
+	PHP_FE(event_buffer_fd_set, 		NULL)
+	{NULL, NULL, NULL}
+};
+/* }}} */
+#endif
+
 
 /* {{{ libevent_module_entry
  */
@@ -1160,9 +1188,9 @@ zend_module_entry libevent_module_entry = {
 	"libevent",
 	libevent_functions,
 	PHP_MINIT(libevent),
-	PHP_MSHUTDOWN(libevent),
-	PHP_RINIT(libevent),
-	PHP_RSHUTDOWN(libevent),
+	NULL,
+	NULL,
+	NULL,
 	PHP_MINFO(libevent),
 #if ZEND_MODULE_API_NO >= 20010901
 	PHP_LIBEVENT_VERSION,
