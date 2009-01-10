@@ -33,6 +33,10 @@ if test "$PHP_LIBEVENT" != "no"; then
   LIBNAME=event
   LIBSYMBOL=event_init
 
+  if test "x$PHP_LIBDIR" = "x"; then
+    PHP_LIBDIR=lib
+  fi
+
   PHP_CHECK_LIBRARY($LIBNAME,$LIBSYMBOL,
   [
     PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $LIBEVENT_DIR/$PHP_LIBDIR, LIBEVENT_SHARED_LIBADD)
