@@ -81,6 +81,7 @@ typedef struct _php_event_t { /* {{{ */
 #ifdef ZTS
 	void ***thread_ctx;
 #endif
+	int in_free;
 } php_event_t;
 /* }}} */
 
@@ -136,6 +137,12 @@ static void _php_event_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) /* {{{ */
 {
 	php_event_t *event = (php_event_t*)rsrc->ptr;
 	int base_id = -1;
+
+	if (event->in_free) {
+		return;
+	}
+
+	event->in_free = 1;
 
 	if (event->base) {
 		base_id = event->base->rsrc_id;
