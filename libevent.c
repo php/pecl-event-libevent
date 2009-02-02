@@ -1078,9 +1078,6 @@ static PHP_MINFO_FUNCTION(libevent)
 	
 	snprintf(buf, sizeof(buf) - 1, "%s", event_get_version());
 	php_info_print_table_row(2, "libevent version", buf);
-	
-	snprintf(buf, sizeof(buf) - 1, "%s", event_get_method());
-	php_info_print_table_row(2, "event method used", buf);
 
 	php_info_print_table_end();
 }
