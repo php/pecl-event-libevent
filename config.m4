@@ -31,7 +31,7 @@ if test "$PHP_LIBEVENT" != "no"; then
   PHP_ADD_INCLUDE($LIBEVENT_DIR/include)
 
   LIBNAME=event
-  LIBSYMBOL=event_init
+  LIBSYMBOL=event_base_new
 
   if test "x$PHP_LIBDIR" = "x"; then
     PHP_LIBDIR=lib
@@ -41,7 +41,7 @@ if test "$PHP_LIBEVENT" != "no"; then
   [
     PHP_ADD_LIBRARY_WITH_PATH($LIBNAME, $LIBEVENT_DIR/$PHP_LIBDIR, LIBEVENT_SHARED_LIBADD)
   ],[
-    AC_MSG_ERROR([wrong libevent version or lib not found])
+    AC_MSG_ERROR([wrong libevent version {1.4.+ is required} or lib not found])
   ],[
     -L$LIBEVENT_DIR/$PHP_LIBDIR 
   ])
