@@ -536,6 +536,11 @@ static PHP_FUNCTION(event_add)
 
 	ZVAL_TO_EVENT(zevent, event);
 
+	if (!event->base) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to add event without an event base");
+		RETURN_FALSE;
+	}
+
 	if (timeout < 0) {
 		ret = event_add(event->event, NULL);
 	} else {
@@ -617,6 +622,11 @@ static PHP_FUNCTION(event_del)
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zevent) != SUCCESS) {
 		return;
+	}
+
+	if (!event->base) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete event without an event base");
+		RETURN_FALSE;
 	}
 
 	ZVAL_TO_EVENT(zevent, event);
@@ -854,6 +864,11 @@ static PHP_FUNCTION(event_buffer_priority_set)
 	}
 
 	ZVAL_TO_BEVENT(zbevent, bevent);
+
+	if (!bevent->base) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to set event priority without an event base");
+		RETURN_FALSE;
+	}
 
 	ret = bufferevent_priority_set(bevent->bevent, priority);
 
