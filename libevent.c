@@ -498,6 +498,12 @@ static PHP_FUNCTION(event_base_priority_init)
 	}
 
 	ZVAL_TO_BASE(zbase, base);
+
+	if (max_priority < 0) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "max_priority cannot be less than zero");
+		RETURN_FALSE;
+	}
+
 	ret = event_base_priority_init(base->base, max_priority);
 	if (ret == 0) {
 		RETURN_TRUE;
