@@ -484,6 +484,28 @@ static PHP_FUNCTION(event_base_set)
 }
 /* }}} */
 
+/* {{{ proto bool event_base_priority_init(resource base, int max_priority) 
+ */
+static PHP_FUNCTION(event_base_priority_init)
+{
+	zval *zbase;
+	php_event_base_t *base;
+	long max_priority;
+	int ret;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbase, &max_priority) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_BASE(zbase, base);
+	ret = event_base_priority_init(base->base, max_priority);
+	if (ret == 0) {
+		RETURN_TRUE;
+	}
+	RETURN_FALSE;
+}
+/* }}} */
+
 
 /* {{{ proto resource event_new() 
  */
@@ -1139,6 +1161,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_set, 0, 0, 2)
 ZEND_END_ARG_INFO()
 
 EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_priority_init, 0, 0, 2)
+	ZEND_ARG_INFO(0, base)
+	ZEND_ARG_INFO(0, max_priority)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
 ZEND_BEGIN_ARG_INFO(arginfo_event_new, 0)
 ZEND_END_ARG_INFO()
 
@@ -1254,6 +1282,7 @@ zend_function_entry libevent_functions[] = {
 	PHP_FE(event_base_loopbreak, 		arginfo_event_base_loopbreak)
 	PHP_FE(event_base_loopexit, 		arginfo_event_base_loopexit)
 	PHP_FE(event_base_set, 				arginfo_event_base_set)
+	PHP_FE(event_base_priority_init, 	arginfo_event_base_priority_init)
 	PHP_FE(event_new, 					arginfo_event_new)
 	PHP_FE(event_free, 					arginfo_event_del)
 	PHP_FE(event_add, 					arginfo_event_add)
@@ -1288,6 +1317,7 @@ function_entry libevent_functions[] = {
 	PHP_FE(event_base_loopbreak, 		NULL)
 	PHP_FE(event_base_loopexit, 		NULL)
 	PHP_FE(event_base_set, 				NULL)
+	PHP_FE(event_base_priority_init,	NULL)
 	PHP_FE(event_new, 					NULL)
 	PHP_FE(event_free, 					NULL)
 	PHP_FE(event_add, 					NULL)
