@@ -681,6 +681,7 @@ static PHP_FUNCTION(event_timer_set)
 	if (old_callback) {
 		_php_event_callback_free(old_callback);
 	}
+	RETURN_TRUE;
 }
 /* }}} */
 
@@ -712,7 +713,6 @@ static PHP_FUNCTION(event_timer_pending)
 	if (ret != 0) {
 		RETURN_FALSE;
 	}
-
 	RETURN_TRUE;
 }
 /* }}} */
@@ -1015,7 +1015,6 @@ static PHP_FUNCTION(event_buffer_timeout_set)
 	}
 
 	ZVAL_TO_BEVENT(zbevent, bevent);
-
 	bufferevent_settimeout(bevent->bevent, read_timeout, write_timeout);
 }
 /* }}} */
@@ -1033,7 +1032,6 @@ static PHP_FUNCTION(event_buffer_watermark_set)
 	}
 
 	ZVAL_TO_BEVENT(zbevent, bevent);
-
 	bufferevent_setwatermark(bevent->bevent, events, lowmark, highmark);
 }
 /* }}} */
