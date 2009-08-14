@@ -210,8 +210,12 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 	callback = event->callback;
 
 	MAKE_STD_ZVAL(args[0]);
-	ZVAL_RESOURCE(args[0], event->stream_id);
-	zend_list_addref(event->stream_id);
+	if (event->stream_id >= 0) {
+		ZVAL_RESOURCE(args[0], event->stream_id);
+		zend_list_addref(event->stream_id);
+	} else {
+		ZVAL_NULL(args[0]);
+	}
 	
 	MAKE_STD_ZVAL(args[1]);
 	ZVAL_LONG(args[1], events);
