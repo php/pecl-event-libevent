@@ -610,6 +610,7 @@ static PHP_FUNCTION(event_set)
 	if (old_callback) {
 		_php_event_callback_free(old_callback);
 	}
+	RETURN_TRUE;
 }
 /* }}} */
 
