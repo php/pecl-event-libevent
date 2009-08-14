@@ -614,7 +614,7 @@ static PHP_FUNCTION(event_set)
 }
 /* }}} */
 
-/* {{{ proto void event_del(resource event) 
+/* {{{ proto bool event_del(resource event) 
  */
 static PHP_FUNCTION(event_del)
 {
@@ -631,7 +631,10 @@ static PHP_FUNCTION(event_del)
 	}
 
 	ZVAL_TO_EVENT(zevent, event);
-	event_del(event->event);	
+	if (event_del(event->event) == 0) {
+		RETURN_TRUE;
+	}
+	RETURN_FALSE;
 }
 /* }}} */
 
