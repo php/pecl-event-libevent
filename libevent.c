@@ -674,6 +674,9 @@ static PHP_FUNCTION(event_timer_set)
 
 	old_callback = event->callback;
 	event->callback = callback;
+	if (event->stream_id >= 0) {
+		zend_list_delete(event->stream_id);
+	}
 	event->stream_id = -1;
 
 	event_set(event->event, -1, 0, _php_event_callback, event);
