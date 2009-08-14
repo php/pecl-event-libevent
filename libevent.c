@@ -484,27 +484,27 @@ static PHP_FUNCTION(event_base_set)
 }
 /* }}} */
 
-/* {{{ proto bool event_base_priority_init(resource base, int max_priority) 
+/* {{{ proto bool event_base_priority_init(resource base, int npriorities) 
  */
 static PHP_FUNCTION(event_base_priority_init)
 {
 	zval *zbase;
 	php_event_base_t *base;
-	long max_priority;
+	long npriorities;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbase, &max_priority) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbase, &npriorities) != SUCCESS) {
 		return;
 	}
 
 	ZVAL_TO_BASE(zbase, base);
 
-	if (max_priority < 0) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "max_priority cannot be less than zero");
+	if (npriorities < 0) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "npriorities cannot be less than zero");
 		RETURN_FALSE;
 	}
 
-	ret = event_base_priority_init(base->base, max_priority);
+	ret = event_base_priority_init(base->base, npriorities);
 	if (ret == 0) {
 		RETURN_TRUE;
 	}
@@ -1169,7 +1169,7 @@ ZEND_END_ARG_INFO()
 EVENT_ARGINFO
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_base_priority_init, 0, 0, 2)
 	ZEND_ARG_INFO(0, base)
-	ZEND_ARG_INFO(0, max_priority)
+	ZEND_ARG_INFO(0, npriorities)
 ZEND_END_ARG_INFO()
 
 EVENT_ARGINFO
