@@ -46,6 +46,7 @@ if test "$PHP_LIBEVENT" != "no"; then
     -L$LIBEVENT_DIR/$PHP_LIBDIR 
   ])
 
+  PHP_ADD_EXTENSION_DEP(libevent, sockets, true)
   PHP_SUBST(LIBEVENT_SHARED_LIBADD)
   PHP_NEW_EXTENSION(libevent, libevent.c, $ext_shared)
 fi
