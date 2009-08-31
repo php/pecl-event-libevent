@@ -23,15 +23,15 @@ http://pear.php.net/dtd/package-2.0.xsd">
  <date>2009-08-29</date>
  <time>19:00:00</time>
  <version>
-  <release>0.0.2</release>
-  <api>0.0.2</api>
+  <release>0.0.3</release>
+  <api>0.0.3</api>
  </version>
  <stability>
   <release>beta</release>
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP</license>
- <notes>Initial release (after a long testing period).
+ <notes>- Added support for sockets created with socket_create() (requires PHP 5.3.1+).
  </notes>
  <contents>
   <dir name="/">
@@ -58,4 +58,13 @@ http://pear.php.net/dtd/package-2.0.xsd">
  <extsrcrelease>
   <configureoption default="autodetect" name="with-libevent" prompt="Please provide the prefix of libevent installation" />
  </extsrcrelease>
+ <changelog>
+  <release>
+   <stability><release>beta</release><api>beta</api></stability>
+   <version><release>0.0.2</release><api>0.0.2</api></version>
+   <date>2009-08-29</date>
+   <notes>Initial release (after a long testing period).
+   </notes>
+  </release>
+ </changelog>
 </package>
