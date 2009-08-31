@@ -30,6 +30,11 @@
 #include "php_network.h"
 #include "php_libevent.h"
 
+#if PHP_VERSION_ID >= 50301 && (HAVE_SOCKETS || defined(COMPILE_DL_SOCKETS))
+# include "ext/sockets/php_sockets.h"
+# define LIBEVENT_SOCKETS_SUPPORT
+#endif
+
 #include <event.h>
 
 #if PHP_MAJOR_VERSION < 5
@@ -602,16 +607,31 @@ static PHP_FUNCTION(event_set)
 	char *func_name;
 	php_stream *stream;
 	php_socket_t file_desc;
+#ifdef LIBEVENT_SOCKETS_SUPPORT
+	php_socket *php_sock;
+#endif
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrlz|z", &zevent, &fd, &events, &zcallback, &zarg) != SUCCESS) {
 		return;
 	}
 
 	ZVAL_TO_EVENT(zevent, event);
-	php_stream_from_zval(stream, &fd);
-
-	if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&file_desc, 1) != SUCCESS || file_desc < 0) {
+	if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, &fd, -1, NULL, php_file_le_stream())) {
+		if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&file_desc, 1) != SUCCESS || file_desc < 0) {
+			RETURN_FALSE;
+		}
+	} else {
+#ifdef LIBEVENT_SOCKETS_SUPPORT
+		if (ZEND_FETCH_RESOURCE_NO_RETURN(php_sock, php_socket *, &fd, -1, NULL, php_sockets_le_socket())) {
+			file_desc = php_sock->bsd_socket;
+		} else {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be either valid PHP stream or valid PHP socket resource");
+			RETURN_FALSE;
+		}
+#else
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource");
 		RETURN_FALSE;
+#endif
 	}
 
 	if (!zend_is_callable(zcallback, 0, &func_name TSRMLS_CC)) {
@@ -763,15 +783,30 @@ static PHP_FUNCTION(event_buffer_new)
 	zval *zstream, *zreadcb, *zwritecb, *zerrorcb, *zarg = NULL;
 	php_socket_t fd;
 	char *func_name;
+#ifdef LIBEVENT_SOCKETS_SUPPORT
+	php_socket *php_sock;
+#endif
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzzz|z", &zstream, &zreadcb, &zwritecb, &zerrorcb, &zarg) != SUCCESS) {
 		return;
 	}
 
-	php_stream_from_zval(stream, &zstream);
-
-	if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
+	if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, &zstream, -1, NULL, php_file_le_stream())) {
+		if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
+			RETURN_FALSE;
+		}
+	} else {
+#ifdef LIBEVENT_SOCKETS_SUPPORT
+		if (ZEND_FETCH_RESOURCE_NO_RETURN(php_sock, php_socket *, &zstream, -1, NULL, php_sockets_le_socket())) {
+			fd = php_sock->bsd_socket;
+		} else {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "stream argument must be either valid PHP stream or valid PHP socket resource");
+			RETURN_FALSE;
+		}
+#else
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "stream argument must be valid PHP stream resource");
 		RETURN_FALSE;
+#endif
 	}
 
 	if (Z_TYPE_P(zreadcb) != IS_NULL) {
@@ -1079,16 +1114,31 @@ static PHP_FUNCTION(event_buffer_fd_set)
 	php_stream *stream;
 	php_bufferevent_t *bevent;
 	php_socket_t fd;
+#ifdef LIBEVENT_SOCKETS_SUPPORT
+	php_socket *php_sock;
+#endif
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr", &zbevent, &zfd) != SUCCESS) {
 		return;
 	}
 
 	ZVAL_TO_BEVENT(zbevent, bevent);
-	php_stream_from_zval(stream, &zfd);
-
-	if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
+	if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, &zfd, -1, NULL, php_file_le_stream())) {
+		if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
+			RETURN_FALSE;
+		}
+	} else {
+#ifdef LIBEVENT_SOCKETS_SUPPORT
+		if (ZEND_FETCH_RESOURCE_NO_RETURN(php_sock, php_socket *, &zfd, -1, NULL, php_sockets_le_socket())) {
+			fd = php_sock->bsd_socket;
+		} else {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be either valid PHP stream or valid PHP socket resource");
+			RETURN_FALSE;
+		}
+#else
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource");
 		RETURN_FALSE;
+#endif
 	}
 
 	bufferevent_setfd(bevent->bevent, fd);
