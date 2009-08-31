@@ -1400,13 +1400,18 @@ function_entry libevent_functions[] = {
 /* }}} */
 #endif
 
+static const zend_module_dep libevent_deps[] = { /* {{{ */
+	ZEND_MOD_OPTIONAL("sockets")
+	{NULL, NULL, NULL}
+};
+/* }}} */
 
 /* {{{ libevent_module_entry
  */
 zend_module_entry libevent_module_entry = {
-#if ZEND_MODULE_API_NO >= 20010901
-	STANDARD_MODULE_HEADER,
-#endif
+	STANDARD_MODULE_HEADER_EX,
+	NULL,
+	libevent_deps,
 	"libevent",
 	libevent_functions,
 	PHP_MINIT(libevent),
@@ -1414,9 +1419,7 @@ zend_module_entry libevent_module_entry = {
 	NULL,
 	NULL,
 	PHP_MINFO(libevent),
-#if ZEND_MODULE_API_NO >= 20010901
 	PHP_LIBEVENT_VERSION,
-#endif
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
