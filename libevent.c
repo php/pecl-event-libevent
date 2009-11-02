@@ -970,9 +970,9 @@ static PHP_FUNCTION(event_buffer_write)
 
 	ZVAL_TO_BEVENT(zbevent, bevent);
 
-	if (ZEND_NUM_ARGS() < 3) {
+	if (ZEND_NUM_ARGS() < 3 || data_size < 0) {
 		data_size = data_len;
-	} else if (data_size < 0 || data_size > data_len) {
+	} else if (data_size > data_len) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "data_size out of range");
 		RETURN_FALSE;
 	}
