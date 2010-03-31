@@ -1372,7 +1372,7 @@ zend_function_entry libevent_functions[] = {
 #else
 /* {{{ libevent_functions[]
  */
-function_entry libevent_functions[] = {
+zend_function_entry libevent_functions[] = {
 	PHP_FE(event_base_new, 				NULL)
 	PHP_FE(event_base_free, 			NULL)
 	PHP_FE(event_base_loop, 			NULL)
