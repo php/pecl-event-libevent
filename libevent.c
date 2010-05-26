@@ -677,12 +677,13 @@ static PHP_FUNCTION(event_del)
 		return;
 	}
 
+	ZVAL_TO_EVENT(zevent, event);
+
 	if (!event->base) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete event without an event base");
 		RETURN_FALSE;
 	}
 
-	ZVAL_TO_EVENT(zevent, event);
 	if (event_del(event->event) == 0) {
 		RETURN_TRUE;
 	}
