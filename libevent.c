@@ -1146,6 +1146,102 @@ static PHP_FUNCTION(event_buffer_fd_set)
 }
 /* }}} */
 
+/* {{{ proto resource event_buffer_set_callback(resource bevent, mixed readcb, mixed writecb, mixed errorcb[, mixed arg]) 
+ */
+static PHP_FUNCTION(event_buffer_set_callback)
+{
+	php_bufferevent_t *bevent;
+	zval *zbevent, *zreadcb, *zwritecb, *zerrorcb, *zarg = NULL;
+	char *func_name;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzzz|z", &zbevent, &zreadcb, &zwritecb, &zerrorcb, &zarg) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_BEVENT(zbevent, bevent);
+
+	if (Z_TYPE_P(zreadcb) != IS_NULL) {
+		if (!zend_is_callable(zreadcb, 0, &func_name TSRMLS_CC)) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid read callback", func_name);
+			efree(func_name);
+			RETURN_FALSE;
+		}
+		efree(func_name);
+	} else {
+		zreadcb = NULL;
+	}
+
+	if (Z_TYPE_P(zwritecb) != IS_NULL) {
+		if (!zend_is_callable(zwritecb, 0, &func_name TSRMLS_CC)) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid write callback", func_name);
+			efree(func_name);
+			RETURN_FALSE;
+		}
+		efree(func_name);
+	} else {
+		zwritecb = NULL;
+	}
+
+	if (Z_TYPE_P(zerrorcb) != IS_NULL) {
+		if (!zend_is_callable(zerrorcb, 0, &func_name TSRMLS_CC)) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid error callback", func_name);
+			efree(func_name);
+			RETURN_FALSE;
+		}
+		efree(func_name);
+	} else {
+		zerrorcb = NULL;
+	}
+
+	if (zreadcb) {
+		zval_add_ref(&zreadcb);
+		
+		if (bevent->readcb) {
+			zval_ptr_dtor(&bevent->readcb);
+		}
+		bevent->readcb = zreadcb;
+	} else {
+		if (bevent->readcb) {
+			zval_ptr_dtor(&bevent->readcb);
+		}
+		bevent->readcb = NULL;
+	}
+
+	if (zwritecb) {
+		zval_add_ref(&zwritecb);
+		
+		if (bevent->writecb) {
+			zval_ptr_dtor(&bevent->writecb);
+		}
+		bevent->writecb = zwritecb;
+	} else {
+		if (bevent->writecb) {
+			zval_ptr_dtor(&bevent->writecb);
+		}
+		bevent->writecb = NULL;
+	}
+	
+	if (zerrorcb) {
+		zval_add_ref(&zerrorcb);
+		
+		if (bevent->errorcb) {
+			zval_ptr_dtor(&bevent->errorcb);
+		}
+		bevent->errorcb = zerrorcb;
+	}
+	
+	if (zarg) {
+		zval_add_ref(&zarg);
+		if (bevent->arg) {
+			zval_ptr_dtor(&bevent->arg);
+		}
+		bevent->arg = zarg;
+	}
+
+	RETURN_TRUE;
+}
+/* }}} */
+
 
 /* {{{ PHP_MINIT_FUNCTION
  */
@@ -1320,6 +1416,15 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_fd_set, 0, 0, 2)
 ZEND_END_ARG_INFO()
 
 EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_set_callback, 0, 0, 4)
+	ZEND_ARG_INFO(0, bevent)
+	ZEND_ARG_INFO(0, readcb)
+	ZEND_ARG_INFO(0, writecb)
+	ZEND_ARG_INFO(0, errorcb)
+	ZEND_ARG_INFO(0, arg)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_timer_set, 0, 0, 2)
 	ZEND_ARG_INFO(0, event)
 	ZEND_ARG_INFO(0, callback)
@@ -1362,6 +1467,7 @@ zend_function_entry libevent_functions[] = {
 	PHP_FE(event_buffer_timeout_set, 	arginfo_event_buffer_timeout_set)
 	PHP_FE(event_buffer_watermark_set, 	arginfo_event_buffer_watermark_set)
 	PHP_FE(event_buffer_fd_set, 		arginfo_event_buffer_fd_set)
+	PHP_FE(event_buffer_set_callback, 	arginfo_event_buffer_set_callback)
 	PHP_FALIAS(event_timer_new,			event_new,		arginfo_event_set)
 	PHP_FE(event_timer_set,				arginfo_event_timer_set)
 	PHP_FE(event_timer_pending,			arginfo_event_timer_pending)
