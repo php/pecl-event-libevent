@@ -302,7 +302,7 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
 	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
-	if (!bevent || !bevent->base || !bevent->writecb) {
+	if (!bevent || !bevent->base || !bevent->errorcb) {
 		return;
 	}
 
