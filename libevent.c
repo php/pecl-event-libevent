@@ -1468,7 +1468,7 @@ zend_function_entry libevent_functions[] = {
 	PHP_FE(event_buffer_watermark_set, 	arginfo_event_buffer_watermark_set)
 	PHP_FE(event_buffer_fd_set, 		arginfo_event_buffer_fd_set)
 	PHP_FE(event_buffer_set_callback, 	arginfo_event_buffer_set_callback)
-	PHP_FALIAS(event_timer_new,			event_new,		arginfo_event_set)
+	PHP_FALIAS(event_timer_new,			event_new,		arginfo_event_new)
 	PHP_FE(event_timer_set,				arginfo_event_timer_set)
 	PHP_FE(event_timer_pending,			arginfo_event_timer_pending)
 	PHP_FALIAS(event_timer_add,			event_add,		arginfo_event_add)
