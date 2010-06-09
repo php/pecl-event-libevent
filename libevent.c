@@ -30,6 +30,8 @@
 #include "php_network.h"
 #include "php_libevent.h"
 
+#include <signal.h>
+
 #if PHP_VERSION_ID >= 50301 && (HAVE_SOCKETS || defined(COMPILE_DL_SOCKETS))
 # include "ext/sockets/php_sockets.h"
 # define LIBEVENT_SOCKETS_SUPPORT
@@ -600,7 +602,7 @@ static PHP_FUNCTION(event_add)
  */
 static PHP_FUNCTION(event_set)
 {
-	zval *zevent, *fd, *zcallback, *zarg = NULL;
+	zval *zevent, **fd, *zcallback, *zarg = NULL;
 	php_event_t *event;
 	long events;
 	php_event_callback_t *callback, *old_callback;
@@ -611,27 +613,38 @@ static PHP_FUNCTION(event_set)
 	php_socket *php_sock;
 #endif
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rrlz|z", &zevent, &fd, &events, &zcallback, &zarg) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rZlz|z", &zevent, &fd, &events, &zcallback, &zarg) != SUCCESS) {
 		return;
 	}
 
 	ZVAL_TO_EVENT(zevent, event);
-	if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, &fd, -1, NULL, php_file_le_stream())) {
-		if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&file_desc, 1) != SUCCESS || file_desc < 0) {
+
+	if (events & EV_SIGNAL) {
+		/* signal support */
+		convert_to_long_ex(fd);
+		file_desc = Z_LVAL_PP(fd);
+		if (file_desc < 0 || file_desc >= NSIG) {
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid signal passed");
 			RETURN_FALSE;
 		}
 	} else {
-#ifdef LIBEVENT_SOCKETS_SUPPORT
-		if (ZEND_FETCH_RESOURCE_NO_RETURN(php_sock, php_socket *, &fd, -1, NULL, php_sockets_le_socket())) {
-			file_desc = php_sock->bsd_socket;
+		if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, fd, -1, NULL, php_file_le_stream())) {
+			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&file_desc, 1) != SUCCESS || file_desc < 0) {
+				RETURN_FALSE;
+			}
 		} else {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be either valid PHP stream or valid PHP socket resource");
-			RETURN_FALSE;
-		}
+#ifdef LIBEVENT_SOCKETS_SUPPORT
+			if (ZEND_FETCH_RESOURCE_NO_RETURN(php_sock, php_socket *, fd, -1, NULL, php_sockets_le_socket())) {
+				file_desc = php_sock->bsd_socket;
+			} else {
+				php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be either valid PHP stream or valid PHP socket resource");
+				RETURN_FALSE;
+			}
 #else
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource");
-		RETURN_FALSE;
+			php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource");
+			RETURN_FALSE;
 #endif
+		}
 	}
 
 	if (!zend_is_callable(zcallback, 0, &func_name TSRMLS_CC)) {
@@ -654,8 +667,12 @@ static PHP_FUNCTION(event_set)
 
 	old_callback = event->callback;
 	event->callback = callback;
-	zend_list_addref(Z_LVAL_P(fd));
-	event->stream_id = Z_LVAL_P(fd);
+	if (events & EV_SIGNAL) {
+		event->stream_id = -1;
+	} else {
+		zend_list_addref(Z_LVAL_PP(fd));
+		event->stream_id = Z_LVAL_PP(fd);
+	}
 
 	event_set(event->event, (int)file_desc, (short)events, _php_event_callback, event);
 
