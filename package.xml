@@ -20,18 +20,20 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <email>lbarnaud@php.net</email>
   <active>yes</active>
  </lead>
- <date>2009-08-29</date>
- <time>19:00:00</time>
+ <date>2010-06-23</date>
+ <time>14:00:00</time>
  <version>
-  <release>0.0.3</release>
-  <api>0.0.3</api>
+  <release>0.0.4</release>
+  <api>0.0.4</api>
  </version>
  <stability>
   <release>beta</release>
   <api>beta</api>
  </stability>
  <license uri="http://www.php.net/license">PHP</license>
- <notes>- Added support for sockets created with socket_create() (requires PHP 5.3.1+).
+ <notes>- Added signal support to event_set().
+- Added add event_buffer_set_callback().
+- Fixed possible segfault in event_del().
  </notes>
  <contents>
   <dir name="/">
@@ -59,6 +61,13 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <configureoption default="autodetect" name="with-libevent" prompt="Please provide the prefix of libevent installation" />
  </extsrcrelease>
  <changelog>
+  <release>
+   <stability><release>beta</release><api>beta</api></stability>
+   <version><release>0.0.3</release><api>0.0.3</api></version>
+   <date>2009-08-29</date>
+   <notes>- Added support for sockets created with socket_create() (requires PHP 5.3.1+).
+   </notes>
+  </release>
   <release>
    <stability><release>beta</release><api>beta</api></stability>
    <version><release>0.0.2</release><api>0.0.2</api></version>
