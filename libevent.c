@@ -37,6 +37,11 @@
 # define LIBEVENT_SOCKETS_SUPPORT
 #endif
 
+#ifndef ZEND_FETCH_RESOURCE_NO_RETURN 
+# define ZEND_FETCH_RESOURCE_NO_RETURN(rsrc, rsrc_type, passed_id, default_id, resource_type_name, resource_type) \
+	(rsrc = (rsrc_type) zend_fetch_resource(passed_id TSRMLS_CC, default_id, resource_type_name, NULL, 1, resource_type))
+#endif
+
 #include <event.h>
 
 #if PHP_MAJOR_VERSION < 5
