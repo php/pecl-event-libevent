@@ -736,6 +736,34 @@ static PHP_FUNCTION(event_del)
 }
 /* }}} */
 
+/* {{{ proto bool event_priority_set(resource event, int priority) 
+ */
+static PHP_FUNCTION(event_priority_set)
+{
+	zval *zevent;
+	php_event_t *event;
+	long priority;
+	int ret;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zevent, &priority) != SUCCESS) {
+		return;
+	}
+
+	ZVAL_TO_EVENT(zevent, event);
+
+	if (!event->base) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to set event priority without an event base");
+		RETURN_FALSE;
+	}
+
+	ret = event_priority_set(event->event, priority);
+
+	if (ret == 0) {
+		RETURN_TRUE;
+	}
+	RETURN_FALSE;
+}
+/* }}} */
 
 /* {{{ proto bool event_timer_set(resource event, mixed callback[, mixed arg]) 
  */
@@ -1418,6 +1446,12 @@ ZEND_BEGIN_ARG_INFO_EX(arginfo_event_del, 0, 0, 1)
 ZEND_END_ARG_INFO()
 
 EVENT_ARGINFO
+ZEND_BEGIN_ARG_INFO_EX(arginfo_event_priority_set, 0, 0, 2)
+	ZEND_ARG_INFO(0, event)
+	ZEND_ARG_INFO(0, priority)
+ZEND_END_ARG_INFO()
+
+EVENT_ARGINFO
 ZEND_BEGIN_ARG_INFO_EX(arginfo_event_buffer_new, 0, 0, 4)
 	ZEND_ARG_INFO(0, stream)
 	ZEND_ARG_INFO(0, readcb)
@@ -1524,6 +1558,7 @@ zend_function_entry libevent_functions[] = {
 	PHP_FE(event_add, 					arginfo_event_add)
 	PHP_FE(event_set, 					arginfo_event_set)
 	PHP_FE(event_del, 					arginfo_event_del)
+	PHP_FE(event_priority_set, 			arginfo_event_priority_set)
 	PHP_FE(event_buffer_new, 			arginfo_event_buffer_new)
 	PHP_FE(event_buffer_free, 			arginfo_event_buffer_free)
 	PHP_FE(event_buffer_base_set, 		arginfo_event_buffer_base_set)
@@ -1560,6 +1595,7 @@ zend_function_entry libevent_functions[] = {
 	PHP_FE(event_add, 					NULL)
 	PHP_FE(event_set, 					NULL)
 	PHP_FE(event_del, 					NULL)
+	PHP_FE(event_priority_set, 			NULL)
 	PHP_FE(event_buffer_new, 			NULL)
 	PHP_FE(event_buffer_free, 			NULL)
 	PHP_FE(event_buffer_base_set, 		NULL)
