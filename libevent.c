@@ -356,7 +356,11 @@ static PHP_FUNCTION(event_base_new)
 
 	base->events = 0;
 
+#if PHP_MAJOR_VERSION >= 5 && PHP_MINOR_VERSION >= 4
+	base->rsrc_id = zend_list_insert(base, le_event_base TSRMLS_CC);
+#else
 	base->rsrc_id = zend_list_insert(base, le_event_base);
+#endif
 	RETURN_RESOURCE(base->rsrc_id);
 }
 /* }}} */
@@ -544,7 +548,11 @@ static PHP_FUNCTION(event_new)
 	event->in_free = 0;
 	TSRMLS_SET_CTX(event->thread_ctx);
 
+#if PHP_MAJOR_VERSION >= 5 && PHP_MINOR_VERSION >= 4
+	event->rsrc_id = zend_list_insert(event, le_event TSRMLS_CC);
+#else
 	event->rsrc_id = zend_list_insert(event, le_event);
+#endif
 	RETURN_RESOURCE(event->rsrc_id);
 }
 /* }}} */
@@ -950,7 +958,11 @@ static PHP_FUNCTION(event_buffer_new)
 
 	TSRMLS_SET_CTX(bevent->thread_ctx);
 
+#if PHP_MAJOR_VERSION >= 5 && PHP_MINOR_VERSION >= 4
+	bevent->rsrc_id = zend_list_insert(bevent, le_bufferevent TSRMLS_CC);
+#else
 	bevent->rsrc_id = zend_list_insert(bevent, le_bufferevent);
+#endif
 	RETURN_RESOURCE(bevent->rsrc_id);
 }
 /* }}} */
