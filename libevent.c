@@ -488,7 +488,7 @@ static PHP_FUNCTION(event_base_set)
 			++base->events;
 		}
 
-		if (old_base) {
+		if (old_base && base != old_base) {
 			--old_base->events;
 			zend_list_delete(old_base->rsrc_id);
 		}
