@@ -225,6 +225,8 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 	if (event->stream_id >= 0) {
 		ZVAL_RESOURCE(args[0], event->stream_id);
 		zend_list_addref(event->stream_id);
+	} else if (events & EV_SIGNAL) {
+		ZVAL_LONG(args[0], fd);
 	} else {
 		ZVAL_NULL(args[0]);
 	}
