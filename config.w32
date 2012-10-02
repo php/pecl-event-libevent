@@ -1,0 +1,13 @@
+ARG_WITH("libevent", "libevent support", "no");
+
+if (PHP_LIBEVENT != "no") {
+
+	if (CHECK_HEADER_ADD_INCLUDE("event.h", "CFLAGS_LIBEVENT", PHP_PHP_BUILD + "\\include;" + PHP_LIBEVENT)
+        && CHECK_LIB("libevent.lib", "libevent", PHP_PHP_BUILD + "\\lib;" + PHP_LIBEVENT))
+	{
+		EXTENSION('libevent', 'libevent.c');
+		AC_DEFINE('HAVE_LIBEVENT', 1);
+	} else {
+		WARNING("libevent not enabled; libraries and headers not found");
+	}
+}
