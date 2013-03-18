@@ -42,7 +42,18 @@
 	(rsrc = (rsrc_type) zend_fetch_resource(passed_id TSRMLS_CC, default_id, resource_type_name, NULL, 1, resource_type))
 #endif
 
-#include <event.h>
+#ifdef PHP_WIN32
+/* XXX compiling with 2.x on Windows. Luckily the ext code works thanks to the
+compat exports from the libevent. However it might need to be adapted to the
+never version, so this ifdefs would go away. */
+# include <event2/event.h>
+# include <event2/event_compat.h>
+# include <event2/event_struct.h>
+# include <event2/bufferevent.h>
+# include <event2/bufferevent_compat.h>
+#else
+# include <event.h>
+#endif
 
 #if PHP_MAJOR_VERSION < 5
 # ifdef PHP_WIN32
