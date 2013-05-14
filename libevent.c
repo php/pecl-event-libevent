@@ -378,6 +378,26 @@ static PHP_FUNCTION(event_base_new)
 }
 /* }}} */
 
+/* {{{ proto bool event_base_reinit()
+ */
+static PHP_FUNCTION(event_base_reinit) {
+    zval *zbase;
+    php_event_base_t *base;
+    int r = 0;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zbase) != SUCCESS) {
+        return;
+    }
+
+    ZVAL_TO_BASE(zbase, base);
+    r = event_reinit(base->base);
+    if (r == -1) {
+        RETURN_FALSE
+    } else {
+        RETURN_TRUE;
+    }
+}
+/* }}} */
+
 /* {{{ proto void event_base_free(resource base) 
  */
 static PHP_FUNCTION(event_base_free)
@@ -1572,6 +1592,7 @@ const
 #endif
 zend_function_entry libevent_functions[] = {
 	PHP_FE(event_base_new, 				arginfo_event_new)
+	PHP_FE(event_base_reinit, 			arginfo_event_base_loopbreak)
 	PHP_FE(event_base_free, 			arginfo_event_base_loopbreak)
 	PHP_FE(event_base_loop, 			arginfo_event_base_loop)
 	PHP_FE(event_base_loopbreak, 		arginfo_event_base_loopbreak)
@@ -1609,6 +1630,7 @@ zend_function_entry libevent_functions[] = {
  */
 zend_function_entry libevent_functions[] = {
 	PHP_FE(event_base_new, 				NULL)
+	PHP_FE(event_base_reinit, 			NULL)
 	PHP_FE(event_base_free, 			NULL)
 	PHP_FE(event_base_loop, 			NULL)
 	PHP_FE(event_base_loopbreak, 		NULL)
