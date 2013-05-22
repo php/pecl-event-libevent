@@ -20,11 +20,11 @@ http://pear.php.net/dtd/package-2.0.xsd">
   <email>lbarnaud@php.net</email>
   <active>yes</active>
  </lead>
- <date>2012-04-02</date>
- <time>19:00:00</time>
+ <date>2013-05-22</date>
+ <time>16:00:00</time>
  <version>
-  <release>0.0.5</release>
-  <api>0.0.5</api>
+  <release>0.1.0</release>
+  <api>0.1.0</api>
  </version>
  <stability>
   <release>beta</release>
@@ -32,12 +32,11 @@ http://pear.php.net/dtd/package-2.0.xsd">
  </stability>
  <license uri="http://www.php.net/license">PHP</license>
  <notes>
-- Fixed build with museum PHP versions.
-- Fixed PECL bug #22705 (event_set() resets event base to NULL).
-- Changed event_set(), event_buffer_new() and event_buffer_set_fd() to
-accept numerical file descriptors.
-- Added event_priority_set() (patch by Ruslan Osmanov).
-- Fixed build with 5_4.
+- Added event_base_reinit(). (Ivan Shalganov, Andy Skelton)
+- Added config.w32. (bruno at chalopin dot fr)
+- Fixed windows compilation with libevent 2.x. (Anatol Belski)
+- Fixed bug #61673 (callback function args are wrong for signal handler).
+- Fixed bug #61653 (Segfault on event_free()).
  </notes>
  <contents>
   <dir name="/">
@@ -65,6 +64,26 @@ accept numerical file descriptors.
   <configureoption default="autodetect" name="with-libevent" prompt="Please provide the prefix of libevent installation" />
  </extsrcrelease>
  <changelog>
+  <release>
+   <date>2012-04-02</date>
+   <time>19:00:00</time>
+   <version>
+    <release>0.0.5</release>
+    <api>0.0.5</api>
+   </version>
+   <stability>
+    <release>beta</release>
+    <api>beta</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP</license>
+   <notes>- Fixed build with museum PHP versions.
+- Fixed PECL bug #22705 (event_set() resets event base to NULL).
+- Changed event_set(), event_buffer_new() and event_buffer_set_fd() to
+accept numerical file descriptors.
+- Added event_priority_set() (patch by Ruslan Osmanov).
+- Fixed build with 5_4.
+   </notes>
+  </release>
   <release>
    <date>2010-06-23</date>
    <time>14:00:00</time>
