@@ -676,7 +676,7 @@ static PHP_FUNCTION(event_set)
 		}
 	} else {
 		if (Z_TYPE_PP(fd) == IS_RESOURCE) {
-			if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, fd, -1, NULL, php_file_le_stream())) {
+			if (ZEND_FETCH_RESOURCE2_NO_RETURN(stream, php_stream *, fd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
 				if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&file_desc, 1) != SUCCESS || file_desc < 0) {
 					RETURN_FALSE;
 				}
@@ -907,7 +907,7 @@ static PHP_FUNCTION(event_buffer_new)
 	}
 	
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
-		if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, &zfd, -1, NULL, php_file_le_stream())) {
+		if (ZEND_FETCH_RESOURCE2_NO_RETURN(stream, php_stream *, &zfd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
 			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
 				RETURN_FALSE;
 			}
@@ -1255,7 +1255,7 @@ static PHP_FUNCTION(event_buffer_fd_set)
 	ZVAL_TO_BEVENT(zbevent, bevent);
 
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
-		if (ZEND_FETCH_RESOURCE_NO_RETURN(stream, php_stream *, &zfd, -1, NULL, php_file_le_stream())) {
+		if (ZEND_FETCH_RESOURCE2_NO_RETURN(stream, php_stream *, &zfd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
 			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
 				RETURN_FALSE;
 			}
