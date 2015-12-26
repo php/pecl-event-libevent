@@ -643,7 +643,7 @@ static PHP_FUNCTION(event_add)
  */
 static PHP_FUNCTION(event_set)
 {
-	zval *zevent, **fd, *zcallback, *zarg = NULL;
+	zval *zevent, *fd, *zcallback, *zarg = NULL;
 	php_event_t *event;
 	long events;
 	php_event_callback_t *callback, *old_callback;
@@ -664,13 +664,13 @@ static PHP_FUNCTION(event_set)
 	if (events & EV_SIGNAL) {
 		/* signal support */
 		convert_to_long_ex(fd);
-		file_desc = Z_LVAL_PP(fd);
+		file_desc = Z_LVAL_P(fd);
 		if (file_desc < 0 || file_desc >= NSIG) {
 			php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid signal passed");
 			RETURN_FALSE;
 		}
 	} else {
-		if (Z_TYPE_PP(fd) == IS_RESOURCE) {
+		if (Z_TYPE_P(fd) == IS_RESOURCE) {
 			if ((php_stream *)zend_fetch_resource2_ex(fd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
 				if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&file_desc, 1) != SUCCESS || file_desc < 0) {
 					RETURN_FALSE;
@@ -688,8 +688,8 @@ static PHP_FUNCTION(event_set)
 				RETURN_FALSE;
 #endif
 			}
-		} else if (Z_TYPE_PP(fd) == IS_LONG) {
-			file_desc = Z_LVAL_PP(fd);
+		} else if (Z_TYPE_P(fd) == IS_LONG) {
+			file_desc = Z_LVAL_P(fd);
 			if (file_desc < 0) {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid file descriptor passed");
 				RETURN_FALSE;
@@ -728,7 +728,7 @@ static PHP_FUNCTION(event_set)
 		event->stream_id = -1;
 	} else {
 		/*zend_list_addref(Z_LVAL_PP(fd));*/
-		event->stream_id = Z_LVAL_PP(fd);
+		event->stream_id = Z_LVAL_P(fd);
 	}
 
 	event_set(event->event, (int)file_desc, (short)events, _php_event_callback, event);
