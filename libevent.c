@@ -419,7 +419,7 @@ static PHP_FUNCTION(event_base_loop)
 {
 	zval *zbase;
 	php_event_base_t *base;
-	long flags = 0;
+	zend_long flags = 0;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zbase, &flags) != SUCCESS) {
@@ -463,7 +463,7 @@ static PHP_FUNCTION(event_base_loopexit)
 	zval *zbase;
 	php_event_base_t *base;
 	int ret;
-	long timeout = -1;
+	zend_long timeout = -1;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zbase, &timeout) != SUCCESS) {
 		return;
@@ -532,7 +532,7 @@ static PHP_FUNCTION(event_base_priority_init)
 {
 	zval *zbase;
 	php_event_base_t *base;
-	long npriorities;
+	zend_long npriorities;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbase, &npriorities) != SUCCESS) {
@@ -603,7 +603,7 @@ static PHP_FUNCTION(event_add)
 	zval *zevent;
 	php_event_t *event;
 	int ret;
-	long timeout = -1;
+	zend_long timeout = -1;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zevent, &timeout) != SUCCESS) {
 		return;
@@ -640,7 +640,7 @@ static PHP_FUNCTION(event_set)
 {
 	zval *zevent, *fd, *zcallback, *zarg = NULL;
 	php_event_t *event;
-	long events;
+	zend_long events = 0;
 	php_event_callback_t *callback, *old_callback;
 	char *func_name;
 	php_stream *stream = NULL;
@@ -769,7 +769,7 @@ static PHP_FUNCTION(event_priority_set)
 {
 	zval *zevent;
 	php_event_t *event;
-	long priority;
+	zend_long priority = 0;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zevent, &priority) != SUCCESS) {
@@ -843,7 +843,7 @@ static PHP_FUNCTION(event_timer_pending)
 	zval *zevent;
 	php_event_t *event;
 	int ret;
-	long timeout = -1;
+	zend_long timeout = -1;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r|l", &zevent, &timeout) != SUCCESS) {
 		return;
@@ -1037,7 +1037,7 @@ static PHP_FUNCTION(event_buffer_priority_set)
 {
 	zval *zbevent;
 	php_bufferevent_t *bevent;
-	long priority;
+	zend_long priority = 0;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &priority) != SUCCESS) {
@@ -1068,7 +1068,7 @@ static PHP_FUNCTION(event_buffer_write)
 	php_bufferevent_t *bevent;
 	char *data;
 	int data_len;
-	long data_size = -1;
+	zend_long data_size = -1;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rs|l", &zbevent, &data, &data_len, &data_size) != SUCCESS) {
@@ -1100,7 +1100,7 @@ static PHP_FUNCTION(event_buffer_read)
 	zval *zbevent;
 	php_bufferevent_t *bevent;
 	char *data;
-	long data_size;
+	zend_long data_size = 0;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &data_size) != SUCCESS) {
@@ -1137,7 +1137,7 @@ static PHP_FUNCTION(event_buffer_enable)
 {
 	zval *zbevent;
 	php_bufferevent_t *bevent;
-	long events;
+	zend_long events = 0;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &events) != SUCCESS) {
@@ -1161,7 +1161,7 @@ static PHP_FUNCTION(event_buffer_disable)
 {
 	zval *zbevent;
 	php_bufferevent_t *bevent;
-	long events;
+	zend_long events = 0;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &events) != SUCCESS) {
@@ -1185,7 +1185,7 @@ static PHP_FUNCTION(event_buffer_timeout_set)
 {
 	zval *zbevent;
 	php_bufferevent_t *bevent;
-	long read_timeout, write_timeout;
+	zend_long read_timeout, write_timeout;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rll", &zbevent, &read_timeout, &write_timeout) != SUCCESS) {
 		return;
@@ -1202,7 +1202,7 @@ static PHP_FUNCTION(event_buffer_watermark_set)
 {
 	zval *zbevent;
 	php_bufferevent_t *bevent;
-	long events, lowmark, highmark;
+	zend_long events, lowmark, highmark;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rlll", &zbevent, &events, &lowmark, &highmark) != SUCCESS) {
 		return;
