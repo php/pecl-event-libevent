@@ -383,7 +383,7 @@ static PHP_FUNCTION(event_base_free)
 		RETURN_FALSE;
 	}
 
-	zend_list_delete(base->rsrc_id);
+	zend_list_delete(Z_RES_P(base->rsrc_id));
 }
 /* }}} */
 
@@ -403,7 +403,7 @@ static PHP_FUNCTION(event_base_loop)
 	base = ZVAL_TO_BASE(zbase);
 	Z_ADDREF_P(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
 	ret = event_base_loop(base->base, flags);
-	zend_list_delete(base->rsrc_id);
+	zend_list_delete(Z_RES_P(base->rsrc_id));
 
 	RETURN_LONG(ret);
 }
@@ -490,7 +490,7 @@ static PHP_FUNCTION(event_base_set)
 
 		if (old_base && base != old_base) {
 			--old_base->events;
-			zend_list_delete(old_base->rsrc_id);
+			zend_list_delete(Z_RES_P(old_base->rsrc_id));
 		}
 
 		event->base = base;
@@ -564,7 +564,7 @@ static PHP_FUNCTION(event_free)
 	}
 
 	event = ZVAL_TO_EVENT(zevent);
-	zend_list_delete(event->rsrc_id);
+	zend_list_delete(Z_RES_P(event->rsrc_id));
 }
 /* }}} */
 
@@ -695,7 +695,7 @@ static PHP_FUNCTION(event_set)
 	if (events & EV_SIGNAL) {
 		event->stream_id = NULL;
 	} else {
-		event->stream_id = Z_RES_P(fd);
+		event->stream_id = fd;
 		Z_ADDREF_P(fd);
 	}
 
@@ -800,7 +800,7 @@ static PHP_FUNCTION(event_timer_set)
 	old_callback = event->callback;
 	event->callback = callback;
 	if (event->stream_id) {
-		zend_list_delete(event->stream_id);
+		zend_list_delete(Z_RES_P(event->stream_id));
 	}
 	event->stream_id = NULL;
 
@@ -930,20 +930,19 @@ static PHP_FUNCTION(event_buffer_new)
 	bevent->base = NULL;
 
 	if (zreadcb) {
-		zval_addref_p(zreadcb);
+		ZVAL_COPY(&bevent->readcb, zreadcb);
 	}
-	bevent->readcb = zreadcb;
-	
+
 	if (zwritecb) {
-		zval_addref_p(zwritecb);
+		ZVAL_COPY(&bevent->writecb, zwritecb);
 	}
-	bevent->writecb = zwritecb;
 		
-	zval_addref_p(zerrorcb);
-	bevent->errorcb = zerrorcb;
+	if (zerrorcb) {
+		ZVAL_COPY(&bevent->errorcb, zerrorcb);
+	}
 
 	if (zarg) {
-		bevent->arg = &zarg;
+		ZVAL_COPY(&bevent->arg, zarg);
 	}
 
 	TSRMLS_SET_CTX(bevent->thread_ctx);
@@ -965,7 +964,7 @@ static PHP_FUNCTION(event_buffer_free)
 	}
 
 	bevent = ZVAL_TO_BEVENT(zbevent);
-	zend_list_delete(bevent->rsrc_id);
+	zend_list_delete(Z_RES_P(bevent->rsrc_id));
 }
 /* }}} */
 
@@ -997,7 +996,9 @@ static PHP_FUNCTION(event_buffer_base_set)
 
 		if (old_base) {
 			--old_base->events;
-			zend_list_delete(old_base->rsrc_id);
+			if (old_base->rsrc_id) {
+				zend_list_delete(Z_RES_P(old_base->rsrc_id));
+			}
 		}
 
 		bevent->base = base;
@@ -1286,49 +1287,41 @@ static PHP_FUNCTION(event_buffer_set_callback)
 		zerrorcb = NULL;
 	}
 
+	if (!Z_ISUNDEF(bevent->readcb)) {
+		zval_ptr_dtor(&bevent->readcb);
+	}
+	if (!Z_ISUNDEF(bevent->writecb)) {
+		zval_ptr_dtor(&bevent->writecb);
+	}
+	if (!Z_ISUNDEF(bevent->errorcb)) {
+		zval_ptr_dtor(&bevent->errorcb);
+	}
+	if (!Z_ISUNDEF(bevent->arg)) {
+		zval_ptr_dtor(&bevent->arg);
+	}
+
 	if (zreadcb) {
-		zval_addref_p(zreadcb);
-		
-		if (bevent->readcb) {
-			zval_ptr_dtor(&bevent->readcb);
-		}
-		bevent->readcb = zreadcb;
+		ZVAL_COPY_VALUE(&bevent->readcb, zreadcb);
 	} else {
-		if (bevent->readcb) {
-			zval_ptr_dtor(&bevent->readcb);
-		}
-		bevent->readcb = NULL;
+		ZVAL_UNDEF(&bevent->readcb);
 	}
 
 	if (zwritecb) {
-		zval_addref_p(zwritecb);
-		
-		if (bevent->writecb) {
-			zval_ptr_dtor(&bevent->writecb);
-		}
-		bevent->writecb = zwritecb;
+		ZVAL_COPY_VALUE(&bevent->writecb, zwritecb);
 	} else {
-		if (bevent->writecb) {
-			zval_ptr_dtor(&bevent->writecb);
-		}
-		bevent->writecb = NULL;
+		ZVAL_UNDEF(&bevent->writecb);
 	}
 	
 	if (zerrorcb) {
-		zval_addref_p(zerrorcb);
-		
-		if (bevent->errorcb) {
-			zval_ptr_dtor(&bevent->errorcb);
-		}
-		bevent->errorcb = zerrorcb;
+		ZVAL_COPY_VALUE(&bevent->errorcb, zerrorcb);
+	} else {
+		ZVAL_UNDEF(&bevent->errorcb);
 	}
 	
 	if (zarg) {
-		zval_addref_p(zarg);
-		if (bevent->arg) {
-			zval_ptr_dtor(&bevent->arg);
-		}
-		bevent->arg = &zarg;
+		ZVAL_COPY_VALUE(&bevent->arg, zarg);
+	} else {
+		ZVAL_UNDEF(&bevent->arg);
 	}
 
 	RETURN_TRUE;
