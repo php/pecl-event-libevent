@@ -124,13 +124,13 @@ typedef struct _php_bufferevent_t { /* {{{ */
 /* }}} */
 
 #define ZVAL_TO_BASE(zval, base) \
-	zend_fetch_resource2_ex(base, php_event_base_t *, &zval, -1, "event base", le_event_base)
+	(php_event_base_t *)zend_fetch_resource2_ex(zval, -1, "event base", le_event_base)
 
 #define ZVAL_TO_EVENT(zval, event) \
-	zend_fetch_resource2_ex(event, php_event_t *, &zval, -1, "event", le_event)
+	(php_event_t *)zend_fetch_resource2_ex(zval, -1, "event", le_event)
 
 #define ZVAL_TO_BEVENT(zval, bevent) \
-	zend_fetch_resource2_ex(bevent, php_bufferevent_t *, &zval, -1, "buffer event", le_bufferevent)
+	(php_bufferevent_t *)zend_fetch_resource2_exzval, -1, "buffer event", le_bufferevent)
 
 /* {{{ internal funcs */
 
@@ -374,7 +374,7 @@ static PHP_FUNCTION(event_base_new)
 #else
 	base->rsrc_id = zend_list_insert(base, le_event_base);
 #endif
-	RETURN_RESOURCE(base->rsrc_id);
+	RETVAL_OBJ(base->rsrc_id);
 }
 /* }}} */
 
@@ -586,7 +586,7 @@ static PHP_FUNCTION(event_new)
 #else
 	event->rsrc_id = zend_list_insert(event, le_event);
 #endif
-	RETURN_RESOURCE(event->rsrc_id);
+	RETVAL_OBJ(event->rsrc_id);
 }
 /* }}} */
 
@@ -996,7 +996,7 @@ static PHP_FUNCTION(event_buffer_new)
 #else
 	bevent->rsrc_id = zend_list_insert(bevent, le_bufferevent);
 #endif
-	RETURN_RESOURCE(bevent->rsrc_id);
+	RETVAL_OBJ(bevent->rsrc_id);
 }
 /* }}} */
 
