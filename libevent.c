@@ -124,14 +124,14 @@ typedef struct _php_bufferevent_t { /* {{{ */
 } php_bufferevent_t;
 /* }}} */
 
-#define ZVAL_TO_BASE(zval, base) \
-	(php_event_base_t *)zend_fetch_resource2_ex(zval, -1, "event base", le_event_base)
+#define ZVAL_TO_BASE(zval) \
+	(php_event_base_t *)zend_fetch_resource2_ex(zval, NULL, "event base", le_event_base)
 
-#define ZVAL_TO_EVENT(zval, event) \
-	(php_event_t *)zend_fetch_resource2_ex(zval, -1, "event", le_event)
+#define ZVAL_TO_EVENT(zval) \
+	(php_event_t *)zend_fetch_resource2_ex(zval, NULL, "event", le_event)
 
-#define ZVAL_TO_BEVENT(zval, bevent) \
-	(php_bufferevent_t *)zend_fetch_resource2_ex(zval, -1, "buffer event", le_bufferevent)
+#define ZVAL_TO_BEVENT(zval) \
+	(php_bufferevent_t *)zend_fetch_resource2_ex(zval, NULL, "buffer event", le_bufferevent)
 
 /* {{{ internal funcs */
 
@@ -382,7 +382,7 @@ static PHP_FUNCTION(event_base_reinit) {
         return;
     }
 
-    ZVAL_TO_BASE(zbase, base);
+    base = ZVAL_TO_BASE(zbase);
     r = event_reinit(base->base);
     if (r == -1) {
         RETURN_FALSE
@@ -403,7 +403,7 @@ static PHP_FUNCTION(event_base_free)
 		return;
 	}
 
-	ZVAL_TO_BASE(zbase, base);
+	base = ZVAL_TO_BASE(zbase);
 
 	if (base->events > 0) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "base has events attached to it and cannot be freed");
@@ -427,7 +427,7 @@ static PHP_FUNCTION(event_base_loop)
 		return;
 	}
 
-	ZVAL_TO_BASE(zbase, base);
+	base = ZVAL_TO_BASE(zbase);
 	/*zend_list_addref(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
 	ret = event_base_loop(base->base, flags);
 	zend_list_delete(base->rsrc_id);
@@ -448,7 +448,7 @@ static PHP_FUNCTION(event_base_loopbreak)
 		return;
 	}
 
-	ZVAL_TO_BASE(zbase, base);
+	base = ZVAL_TO_BASE(zbase);
 	ret = event_base_loopbreak(base->base);
 	if (ret == 0) {
 		RETURN_TRUE;
@@ -470,7 +470,7 @@ static PHP_FUNCTION(event_base_loopexit)
 		return;
 	}
 
-	ZVAL_TO_BASE(zbase, base);
+	base = ZVAL_TO_BASE(zbase);
 
 	if (timeout < 0) {
 		ret = event_base_loopexit(base->base, NULL);
@@ -502,8 +502,8 @@ static PHP_FUNCTION(event_base_set)
 		return;
 	}
 
-	ZVAL_TO_BASE(zbase, base);
-	ZVAL_TO_EVENT(zevent, event);
+	base = ZVAL_TO_BASE(zbase);
+	event = ZVAL_TO_EVENT(zevent);
 
 	old_base = event->base;
 	ret = event_base_set(base->base, event->event);
@@ -540,7 +540,7 @@ static PHP_FUNCTION(event_base_priority_init)
 		return;
 	}
 
-	ZVAL_TO_BASE(zbase, base);
+	base = ZVAL_TO_BASE(zbase);
 
 	if (npriorities < 0) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "npriorities cannot be less than zero");
@@ -593,7 +593,7 @@ static PHP_FUNCTION(event_free)
 		return;
 	}
 
-	ZVAL_TO_EVENT(zevent, event);
+	event = ZVAL_TO_EVENT(zevent);
 	zend_list_delete(event->rsrc_id);
 }
 /* }}} */
@@ -611,7 +611,7 @@ static PHP_FUNCTION(event_add)
 		return;
 	}
 
-	ZVAL_TO_EVENT(zevent, event);
+	event = ZVAL_TO_EVENT(zevent);
 
 	if (!event->base) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to add event without an event base");
@@ -645,7 +645,7 @@ static PHP_FUNCTION(event_set)
 	long events;
 	php_event_callback_t *callback, *old_callback;
 	char *func_name;
-	php_stream *stream;
+	php_stream *stream = NULL;
 	php_socket_t file_desc;
 #ifdef LIBEVENT_SOCKETS_SUPPORT
 	php_socket *php_sock;
@@ -656,7 +656,7 @@ static PHP_FUNCTION(event_set)
 		return;
 	}
 
-	ZVAL_TO_EVENT(zevent, event);
+	event = ZVAL_TO_EVENT(zevent);
 
 	if (events & EV_SIGNAL) {
 		/* signal support */
@@ -668,7 +668,8 @@ static PHP_FUNCTION(event_set)
 		}
 	} else {
 		if (Z_TYPE_P(fd) == IS_RESOURCE) {
-			if ((php_stream *)zend_fetch_resource2_ex(fd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
+			stream = (php_stream *)zend_fetch_resource2_ex(fd, -1, NULL, php_file_le_stream(), php_file_le_pstream());
+			if (stream) {
 				if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&file_desc, 1) != SUCCESS || file_desc < 0) {
 					RETURN_FALSE;
 				}
@@ -750,7 +751,7 @@ static PHP_FUNCTION(event_del)
 		return;
 	}
 
-	ZVAL_TO_EVENT(zevent, event);
+	event = ZVAL_TO_EVENT(zevent);
 
 	if (!event->base) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete event without an event base");
@@ -777,7 +778,7 @@ static PHP_FUNCTION(event_priority_set)
 		return;
 	}
 
-	ZVAL_TO_EVENT(zevent, event);
+	event = ZVAL_TO_EVENT(zevent);
 
 	if (!event->base) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to set event priority without an event base");
@@ -806,7 +807,7 @@ static PHP_FUNCTION(event_timer_set)
 		return;
 	}
 
-	ZVAL_TO_EVENT(zevent, event);
+	event = ZVAL_TO_EVENT(zevent);
 
 	if (!zend_is_callable(zcallback, 0, &func_name TSRMLS_CC)) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid callback", func_name);
@@ -850,7 +851,7 @@ static PHP_FUNCTION(event_timer_pending)
 		return;
 	}
 
-	ZVAL_TO_EVENT(zevent, event);
+	event= ZVAL_TO_EVENT(zevent);
 
 	if (timeout < 0) {
 		ret = event_pending(event->event, EV_TIMEOUT, NULL);
@@ -890,7 +891,8 @@ static PHP_FUNCTION(event_buffer_new)
 	}
 	
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
-		if ((php_stream *)zend_fetch_resource2_ex(&zfd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
+		stream = (php_stream *)zend_fetch_resource2_ex(&zfd, -1, NULL, php_file_le_stream(), php_file_le_pstream());
+		if (stream) {
 			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
 				RETURN_FALSE;
 			}
@@ -989,7 +991,7 @@ static PHP_FUNCTION(event_buffer_free)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent = ZVAL_TO_BEVENT(zbevent);
 	zend_list_delete(bevent->rsrc_id);
 }
 /* }}} */
@@ -1007,8 +1009,8 @@ static PHP_FUNCTION(event_buffer_base_set)
 		return;
 	}
 
-	ZVAL_TO_BASE(zbase, base);
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	base = ZVAL_TO_BASE(zbase);
+	bevent = ZVAL_TO_BEVENT(zbevent);
 
 	old_base = bevent->base;
 	ret = bufferevent_base_set(base->base, bevent->bevent);
@@ -1045,7 +1047,7 @@ static PHP_FUNCTION(event_buffer_priority_set)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent = ZVAL_TO_BEVENT(zbevent);
 
 	if (!bevent->base) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to set event priority without an event base");
@@ -1076,7 +1078,7 @@ static PHP_FUNCTION(event_buffer_write)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent = ZVAL_TO_BEVENT(zbevent);
 
 	if (ZEND_NUM_ARGS() < 3 || data_size < 0) {
 		data_size = data_len;
@@ -1108,7 +1110,7 @@ static PHP_FUNCTION(event_buffer_read)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent= ZVAL_TO_BEVENT(zbevent);
 
 	if (data_size == 0) {
 		RETURN_EMPTY_STRING();
@@ -1145,7 +1147,7 @@ static PHP_FUNCTION(event_buffer_enable)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent = ZVAL_TO_BEVENT(zbevent);
 
 	ret = bufferevent_enable(bevent->bevent, events);
 
@@ -1169,7 +1171,7 @@ static PHP_FUNCTION(event_buffer_disable)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent = ZVAL_TO_BEVENT(zbevent);
 
 	ret = bufferevent_disable(bevent->bevent, events);
 
@@ -1192,7 +1194,7 @@ static PHP_FUNCTION(event_buffer_timeout_set)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent = ZVAL_TO_BEVENT(zbevent);
 	bufferevent_settimeout(bevent->bevent, read_timeout, write_timeout);
 }
 /* }}} */
@@ -1209,7 +1211,7 @@ static PHP_FUNCTION(event_buffer_watermark_set)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent = ZVAL_TO_BEVENT(zbevent);
 	bufferevent_setwatermark(bevent->bevent, events, lowmark, highmark);
 }
 /* }}} */
@@ -1230,10 +1232,11 @@ static PHP_FUNCTION(event_buffer_fd_set)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent= ZVAL_TO_BEVENT(zbevent);
 
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
-		if (( php_stream *)zend_fetch_resource2_ex(&zfd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
+		stream = ( php_stream *)zend_fetch_resource2_ex(&zfd, -1, NULL, php_file_le_stream(), php_file_le_pstream());
+		if (stream) {
 			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
 				RETURN_FALSE;
 			}
@@ -1277,7 +1280,7 @@ static PHP_FUNCTION(event_buffer_set_callback)
 		return;
 	}
 
-	ZVAL_TO_BEVENT(zbevent, bevent);
+	bevent= ZVAL_TO_BEVENT(zbevent);
 
 	if (Z_TYPE_P(zreadcb) != IS_NULL) {
 		if (!zend_is_callable(zreadcb, 0, &func_name TSRMLS_CC)) {
