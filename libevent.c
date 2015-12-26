@@ -92,8 +92,8 @@ typedef struct _php_event_base_t { /* {{{ */
 /* }}} */
 
 typedef struct _php_event_callback_t { /* {{{ */
-	zval *func;
-	zval *arg;
+	zval func;
+	zval arg;
 } php_event_callback_t;
 /* }}} */
 
@@ -140,11 +140,8 @@ static inline void _php_event_callback_free(php_event_callback_t *callback) /* {
 	if (!callback) {
 		return;
 	}
-
 	zval_ptr_dtor(&callback->func);
-	if (callback->arg) {
-		zval_ptr_dtor(&callback->arg);
-	}
+	zval_ptr_dtor(&callback->arg);
 	efree(callback);
 }
 /* }}} */
@@ -242,17 +239,12 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 	}
 
 	ZVAL_LONG(&args[1], (zend_long)events);
+	ZVAL_COPY_VALUE(&args[2], &callback->arg);
 
-	if (callback->arg) {
-		ZVAL_COPY_VALUE(&args[2], callback->arg);
-		Z_ADDREF_P(&args[2]);
-	} else {
-		ZVAL_NULL(&args[2]);
-	}
-
-	if (call_user_function(EG(function_table), NULL, callback->func, &retval, 3, args TSRMLS_CC) == SUCCESS) {
+	if (call_user_function(EG(function_table), NULL, &callback->func, &retval, 3, args) == SUCCESS) {
 		zval_dtor(&retval);
 	}
+
 
 	zval_ptr_dtor(&args[0]);
 	zval_ptr_dtor(&args[1]);
@@ -428,7 +420,7 @@ static PHP_FUNCTION(event_base_loop)
 	}
 
 	base = ZVAL_TO_BASE(zbase);
-	/*zend_list_addref(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
+	Z_ADDREF_P(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
 	ret = event_base_loop(base->base, flags);
 	zend_list_delete(base->rsrc_id);
 
@@ -511,7 +503,7 @@ static PHP_FUNCTION(event_base_set)
 	if (ret == 0) {
 		if (base != old_base) {
 			/* make sure the base is destroyed after the event */
-			/*zend_list_addref(base->rsrc_id);*/
+			Z_ADDREF_P(base->rsrc_id);
 			++base->events;
 		}
 
@@ -709,8 +701,12 @@ static PHP_FUNCTION(event_set)
 	zval_addref_p(zcallback);
 
 	callback = emalloc(sizeof(php_event_callback_t));
-	callback->func = zcallback;
-	callback->arg = zarg;
+	ZVAL_COPY_VALUE(&callback->func, zcallback);
+	if(zarg) {
+		ZVAL_COPY_VALUE(&callback->arg, zarg);
+	} else {
+		ZVAL_NULL(&callback->arg);
+	}
 
 	old_callback = event->callback;
 	event->callback = callback;
@@ -816,8 +812,8 @@ static PHP_FUNCTION(event_timer_set)
 	zval_addref_p(zcallback);
 
 	callback = emalloc(sizeof(php_event_callback_t));
-	callback->func = zcallback;
-	callback->arg = zarg;
+	ZVAL_COPY_VALUE(&callback->func, zcallback);
+	ZVAL_COPY_VALUE(&callback->arg, zarg);
 
 	old_callback = event->callback;
 	event->callback = callback;
@@ -1012,7 +1008,7 @@ static PHP_FUNCTION(event_buffer_base_set)
 	if (ret == 0) {
 		if (base != old_base) {
 			/* make sure the base is destroyed after the event */
-			/*zend_list_addref(base->rsrc_id);*/
+			Z_ADDREF_P(base->rsrc_id);
 			++base->events;
 		}
 
