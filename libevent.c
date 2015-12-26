@@ -39,7 +39,7 @@
 
 #ifndef ZEND_FETCH_RESOURCE_NO_RETURN 
 # define ZEND_FETCH_RESOURCE_NO_RETURN(rsrc, rsrc_type, passed_id, default_id, resource_type_name, resource_type) \
-	(rsrc = (rsrc_type) zend_fetch_resource(passed_id TSRMLS_CC, default_id, resource_type_name, NULL, 1, resource_type))
+	(rsrc = (rsrc_type) zend_fetch_resource2(passed_id TSRMLS_CC, default_id, resource_type_name, NULL, 1, resource_type))
 #endif
 
 #ifdef PHP_WIN32
@@ -86,7 +86,7 @@ ZEND_GET_MODULE(libevent)
 typedef struct _php_event_base_t { /* {{{ */
 	struct event_base *base;
 	int rsrc_id;
-	zend_uint events;
+	zend_uintptr_t events;
 } php_event_base_t;
 /* }}} */
 
@@ -124,13 +124,13 @@ typedef struct _php_bufferevent_t { /* {{{ */
 /* }}} */
 
 #define ZVAL_TO_BASE(zval, base) \
-	ZEND_FETCH_RESOURCE(base, php_event_base_t *, &zval, -1, "event base", le_event_base)
+	zend_fetch_resource2_ex(base, php_event_base_t *, &zval, -1, "event base", le_event_base)
 
 #define ZVAL_TO_EVENT(zval, event) \
-	ZEND_FETCH_RESOURCE(event, php_event_t *, &zval, -1, "event", le_event)
+	zend_fetch_resource2_ex(event, php_event_t *, &zval, -1, "event", le_event)
 
 #define ZVAL_TO_BEVENT(zval, bevent) \
-	ZEND_FETCH_RESOURCE(bevent, php_bufferevent_t *, &zval, -1, "buffer event", le_bufferevent)
+	zend_fetch_resource2_ex(bevent, php_bufferevent_t *, &zval, -1, "buffer event", le_bufferevent)
 
 /* {{{ internal funcs */
 
@@ -148,18 +148,18 @@ static inline void _php_event_callback_free(php_event_callback_t *callback) /* {
 }
 /* }}} */
 
-static void _php_event_base_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) /* {{{ */
+ZEND_RSRC_DTOR_FUNC(_php_event_base_dtor) /* {{{ */
 {
-	php_event_base_t *base = (php_event_base_t*)rsrc->ptr;
+	php_event_base_t *base = (php_event_base_t*)res->ptr;
 
 	event_base_free(base->base);
 	efree(base);
 }
 /* }}} */
 
-static void _php_event_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) /* {{{ */
+ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 {
-	php_event_t *event = (php_event_t*)rsrc->ptr;
+	php_event_t *event = (php_event_t*)res->ptr;
 	int base_id = -1;
 
 	if (event->in_free) {
@@ -187,9 +187,9 @@ static void _php_event_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) /* {{{ */
 }
 /* }}} */
 
-static void _php_bufferevent_dtor(zend_rsrc_list_entry *rsrc TSRMLS_DC) /* {{{ */
+ZEND_RSRC_DTOR_FUNC(_php_bufferevent_dtor) /* {{{ */
 {
-	php_bufferevent_t *bevent = (php_bufferevent_t*)rsrc->ptr;
+	php_bufferevent_t *bevent = (php_bufferevent_t*)res->ptr;
 	int base_id = -1;
 
 	if (bevent->base) {
