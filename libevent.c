@@ -42,6 +42,7 @@
 	(rsrc = (rsrc_type) zend_fetch_resource2(passed_id TSRMLS_CC, default_id, resource_type_name, NULL, 1, resource_type))
 #endif
 
+
 #ifdef PHP_WIN32
 /* XXX compiling with 2.x on Windows. Luckily the ext code works thanks to the
 compat exports from the libevent. However it might need to be adapted to the
@@ -232,18 +233,16 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 
 	callback = event->callback;
 
-	MAKE_STD_ZVAL(args[0]);
 	if (event->stream_id >= 0) {
-		ZVAL_RESOURCE(args[0], event->stream_id);
+		ZVAL_RESOURCE(&args[0], event->stream_id);
 		zend_list_addref(event->stream_id);
 	} else if (events & EV_SIGNAL) {
 		ZVAL_LONG(args[0], fd);
 	} else {
 		ZVAL_NULL(args[0]);
 	}
-	
-	MAKE_STD_ZVAL(args[1]);
-	ZVAL_LONG(args[1], events);
+
+	ZVAL_LONG(&args[1], events);
 
 	args[2] = callback->arg;
 	Z_ADDREF_P(callback->arg);
@@ -270,8 +269,7 @@ static void _php_bufferevent_readcb(struct bufferevent *be, void *arg) /* {{{ */
 		return;
 	}
 
-	MAKE_STD_ZVAL(args[0]);
-	ZVAL_RESOURCE(args[0], bevent->rsrc_id);
+	ZVAL_RESOURCE(&args[0], bevent->rsrc_id);
 	zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
 	
 	args[1] = bevent->arg;
@@ -298,8 +296,7 @@ static void _php_bufferevent_writecb(struct bufferevent *be, void *arg) /* {{{ *
 		return;
 	}
 
-	MAKE_STD_ZVAL(args[0]);
-	ZVAL_RESOURCE(args[0], bevent->rsrc_id);
+	ZVAL_RESOURCE(&args[0], bevent->rsrc_id);
 	zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
 	
 	args[1] = bevent->arg;
@@ -326,12 +323,10 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 		return;
 	}
 
-	MAKE_STD_ZVAL(args[0]);
-	ZVAL_RESOURCE(args[0], bevent->rsrc_id);
+	ZVAL_RESOURCE(&args[0], bevent->rsrc_id);
 	zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
-	
-	MAKE_STD_ZVAL(args[1]);
-	ZVAL_LONG(args[1], what);
+
+	ZVAL_LONG(&args[1], what);
 
 	args[2] = bevent->arg;
 	Z_ADDREF_P(args[2]);
@@ -1255,13 +1250,13 @@ static PHP_FUNCTION(event_buffer_fd_set)
 	ZVAL_TO_BEVENT(zbevent, bevent);
 
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
-		if (ZEND_FETCH_RESOURCE2_NO_RETURN(stream, php_stream *, &zfd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
+		if (( php_stream *)zend_fetch_resource2_ex(&zfd, -1, NULL, php_file_le_stream(), php_file_le_pstream())) {
 			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
 				RETURN_FALSE;
 			}
 		} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
-			if (ZEND_FETCH_RESOURCE_NO_RETURN(php_sock, php_socket *, &zfd, -1, NULL, php_sockets_le_socket())) {
+			if ((php_socket *)zend_fetch_resource2_ex(&zfd, -1, NULL, php_sockets_le_socket())) {
 				fd = php_sock->bsd_socket;
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
