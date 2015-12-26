@@ -657,14 +657,15 @@ static PHP_FUNCTION(event_set)
 		}
 	} else {
 		if (Z_TYPE_P(fd) == IS_RESOURCE) {
-			stream = (php_stream *)zend_fetch_resource2_ex(fd, NULL, php_file_le_stream(), php_file_le_pstream());
+			stream = zend_fetch_resource2_ex(fd, NULL, php_file_le_stream(), php_file_le_pstream());
 			if (stream) {
 				if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&file_desc, 1) != SUCCESS || file_desc < 0) {
 					RETURN_FALSE;
 				}
 			} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
-				if ((php_socket *)zend_fetch_resource2_ex(fd, NULL, php_sockets_le_socket())) {
+				php_sock = (php_socket *)zend_fetch_resource2_ex(fd, NULL, php_sockets_le_socket());
+				if (php_sock) {
 					file_desc = php_sock->bsd_socket;
 				} else {
 					php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be either valid PHP stream or valid PHP socket resource");
@@ -883,14 +884,15 @@ static PHP_FUNCTION(event_buffer_new)
 	}
 	
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
-		stream = (php_stream *)zend_fetch_resource2_ex(&zfd, NULL, php_file_le_stream(), php_file_le_pstream());
+		stream = zend_fetch_resource2_ex(zfd, NULL, php_file_le_stream(), php_file_le_pstream());
 		if (stream) {
 			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
 				RETURN_FALSE;
 			}
 		} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
-			if ((php_socket *)zend_fetch_resource2_ex(&zfd, NULL, php_sockets_le_socket())) {
+			php_sock = (php_socket *)zend_fetch_resource2_ex(zfd, NULL, php_sockets_le_socket());
+			if (php_sock) {
 				fd = php_sock->bsd_socket;
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
@@ -1225,14 +1227,15 @@ static PHP_FUNCTION(event_buffer_fd_set)
 	bevent= ZVAL_TO_BEVENT(zbevent);
 
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
-		stream = ( php_stream *)zend_fetch_resource2_ex(&zfd, NULL, php_file_le_stream(), php_file_le_pstream());
+		stream = zend_fetch_resource2_ex(zfd, NULL, php_file_le_stream(), php_file_le_pstream());
 		if (stream) {
 			if (php_stream_cast(stream, PHP_STREAM_AS_FD_FOR_SELECT | PHP_STREAM_CAST_INTERNAL, (void*)&fd, 1) != SUCCESS || fd < 0) {
 				RETURN_FALSE;
 			}
 		} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
-			if ((php_socket *)zend_fetch_resource2_ex(&zfd, NULL, php_sockets_le_socket())) {
+			php_sock = (php_socket *)zend_fetch_resource2_ex(zfd, NULL, php_sockets_le_socket())
+			if (php_sock) {
 				fd = php_sock->bsd_socket;
 			} else {
 				php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
