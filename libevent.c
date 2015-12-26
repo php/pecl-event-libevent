@@ -712,15 +712,10 @@ static PHP_FUNCTION(event_set)
 	efree(func_name);
 
 	zval_add_ref(&zcallback);
-	if (zarg) {
-		zval_add_ref(&zarg);
-	} else {
-		ALLOC_INIT_ZVAL(zarg);
-	}
 
 	callback = emalloc(sizeof(php_event_callback_t));
 	callback->func = zcallback;
-	callback->arg = zarg;
+	callback->arg = &zarg;
 
 	old_callback = event->callback;
 	event->callback = callback;
@@ -824,15 +819,10 @@ static PHP_FUNCTION(event_timer_set)
 	efree(func_name);
 
 	zval_add_ref(&zcallback);
-	if (zarg) {
-		zval_add_ref(&zarg);
-	} else {
-		ALLOC_INIT_ZVAL(zarg);
-	}
 
 	callback = emalloc(sizeof(php_event_callback_t));
 	callback->func = zcallback;
-	callback->arg = zarg;
+	callback->arg = &zarg;
 
 	old_callback = event->callback;
 	event->callback = callback;
@@ -978,10 +968,7 @@ static PHP_FUNCTION(event_buffer_new)
 	bevent->errorcb = zerrorcb;
 
 	if (zarg) {
-		zval_add_ref(&zarg);
-		bevent->arg = zarg;
-	} else {
-		ALLOC_INIT_ZVAL(bevent->arg);
+		bevent->arg = &zarg;
 	}
 
 	TSRMLS_SET_CTX(bevent->thread_ctx);
@@ -1371,7 +1358,7 @@ static PHP_FUNCTION(event_buffer_set_callback)
 		if (bevent->arg) {
 			zval_ptr_dtor(&bevent->arg);
 		}
-		bevent->arg = zarg;
+		bevent->arg = &zarg;
 	}
 
 	RETURN_TRUE;
