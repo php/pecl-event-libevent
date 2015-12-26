@@ -652,7 +652,7 @@ static PHP_FUNCTION(event_set)
 #endif
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rZlz|z", &zevent, &fd, &events, &zcallback, &zarg) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rzlz|z", &zevent, &fd, &events, &zcallback, &zarg) != SUCCESS) {
 		return;
 	}
 
@@ -746,7 +746,7 @@ static PHP_FUNCTION(event_del)
 	zval *zevent;
 	php_event_t *event;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zevent) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zevent) != SUCCESS) {
 		return;
 	}
 
@@ -773,7 +773,7 @@ static PHP_FUNCTION(event_priority_set)
 	long priority;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zevent, &priority) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zevent, &priority) != SUCCESS) {
 		return;
 	}
 
@@ -802,7 +802,7 @@ static PHP_FUNCTION(event_timer_set)
 	php_event_callback_t *callback, *old_callback;
 	char *func_name;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rz|z", &zevent, &zcallback, &zarg) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rz|z", &zevent, &zcallback, &zarg) != SUCCESS) {
 		return;
 	}
 
@@ -846,7 +846,7 @@ static PHP_FUNCTION(event_timer_pending)
 	int ret;
 	long timeout = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zevent, &timeout) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r|l", &zevent, &timeout) != SUCCESS) {
 		return;
 	}
 
@@ -885,7 +885,7 @@ static PHP_FUNCTION(event_buffer_new)
 	php_socket *php_sock;
 #endif
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zzzz|z", &zfd, &zreadcb, &zwritecb, &zerrorcb, &zarg) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zzzz|z", &zfd, &zreadcb, &zwritecb, &zerrorcb, &zarg) != SUCCESS) {
 		return;
 	}
 	
@@ -985,7 +985,7 @@ static PHP_FUNCTION(event_buffer_free)
 	zval *zbevent;
 	php_bufferevent_t *bevent;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zbevent) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zbevent) != SUCCESS) {
 		return;
 	}
 
@@ -1003,7 +1003,7 @@ static PHP_FUNCTION(event_buffer_base_set)
 	php_bufferevent_t *bevent;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr", &zbevent, &zbase) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rr", &zbevent, &zbase) != SUCCESS) {
 		return;
 	}
 
@@ -1041,7 +1041,7 @@ static PHP_FUNCTION(event_buffer_priority_set)
 	long priority;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbevent, &priority) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &priority) != SUCCESS) {
 		return;
 	}
 
@@ -1072,7 +1072,7 @@ static PHP_FUNCTION(event_buffer_write)
 	long data_size = -1;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rs|l", &zbevent, &data, &data_len, &data_size) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rs|l", &zbevent, &data, &data_len, &data_size) != SUCCESS) {
 		return;
 	}
 
@@ -1104,7 +1104,7 @@ static PHP_FUNCTION(event_buffer_read)
 	long data_size;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbevent, &data_size) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &data_size) != SUCCESS) {
 		return;
 	}
 
@@ -1141,7 +1141,7 @@ static PHP_FUNCTION(event_buffer_enable)
 	long events;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbevent, &events) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &events) != SUCCESS) {
 		return;
 	}
 
@@ -1165,7 +1165,7 @@ static PHP_FUNCTION(event_buffer_disable)
 	long events;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbevent, &events) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &events) != SUCCESS) {
 		return;
 	}
 
@@ -1188,7 +1188,7 @@ static PHP_FUNCTION(event_buffer_timeout_set)
 	php_bufferevent_t *bevent;
 	long read_timeout, write_timeout;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rll", &zbevent, &read_timeout, &write_timeout) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rll", &zbevent, &read_timeout, &write_timeout) != SUCCESS) {
 		return;
 	}
 
@@ -1205,7 +1205,7 @@ static PHP_FUNCTION(event_buffer_watermark_set)
 	php_bufferevent_t *bevent;
 	long events, lowmark, highmark;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rlll", &zbevent, &events, &lowmark, &highmark) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rlll", &zbevent, &events, &lowmark, &highmark) != SUCCESS) {
 		return;
 	}
 
@@ -1226,7 +1226,7 @@ static PHP_FUNCTION(event_buffer_fd_set)
 	php_socket *php_sock;
 #endif
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rz", &zbevent, &zfd) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rz", &zbevent, &zfd) != SUCCESS) {
 		return;
 	}
 
