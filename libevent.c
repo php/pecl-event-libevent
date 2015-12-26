@@ -114,10 +114,10 @@ typedef struct _php_bufferevent_t { /* {{{ */
 	struct bufferevent *bevent;
 	zval *rsrc_id;
 	php_event_base_t *base;
-	zval *readcb;
-	zval *writecb;
-	zval *errorcb;
-	zval *arg;
+	zval readcb;
+	zval writecb;
+	zval errorcb;
+	zval arg;
 #ifdef ZTS
 	void ***thread_ctx;
 #endif
@@ -158,7 +158,7 @@ ZEND_RSRC_DTOR_FUNC(_php_event_base_dtor) /* {{{ */
 ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 {
 	php_event_t *event = (php_event_t*)res->ptr;
-	int base_id = -1;
+	zval *base_id = NULL;
 
 	if (event->in_free) {
 		return;
@@ -171,7 +171,7 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 		--event->base->events;
 	}
 	if (event->stream_id) {
-		zend_list_delete(event->stream_id);
+		zend_list_delete(Z_RES_P(event->stream_id));
 	}
 	event_del(event->event);
 
@@ -179,8 +179,8 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 	efree(event->event);
 	efree(event);
 
-	if (base_id >= 0) {
-		zend_list_delete(base_id);
+	if (base_id) {
+		zend_list_delete(Z_RES_P(base_id));
 	}
 }
 /* }}} */
@@ -188,30 +188,21 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 ZEND_RSRC_DTOR_FUNC(_php_bufferevent_dtor) /* {{{ */
 {
 	php_bufferevent_t *bevent = (php_bufferevent_t*)res->ptr;
-	int base_id = -1;
+	zval *base_id = NULL;
 
 	if (bevent->base) {
 		base_id = bevent->base->rsrc_id;
 		--bevent->base->events;
 	}
-	if (bevent->readcb) {
-		zval_ptr_dtor(&(bevent->readcb));
-	}
-	if (bevent->writecb) {
-		zval_ptr_dtor(&(bevent->writecb));
-	}
-	if (bevent->errorcb) {
-		zval_ptr_dtor(&(bevent->errorcb));
-	}
-	if (bevent->arg) {
-		zval_ptr_dtor(&(bevent->arg));
-	}
-
+	zval_ptr_dtor(&bevent->readcb);
+	zval_ptr_dtor(&bevent->writecb);
+	zval_ptr_dtor(&bevent->errorcb);
+	zval_ptr_dtor(&bevent->arg);
 	bufferevent_free(bevent->bevent);
 	efree(bevent);
 
-	if (base_id >= 0) {
-		zend_list_delete(base_id);
+	if (base_id) {
+		zend_list_delete(Z_RES_P(base_id));
 	}
 }
 /* }}} */
@@ -255,49 +246,43 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 
 static void _php_bufferevent_readcb(struct bufferevent *be, void *arg) /* {{{ */
 {
-	zval *args[2];
+	zval args[2];
 	zval retval;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
 	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
-	if (!bevent || !bevent->base || !bevent->readcb) {
+	if (!bevent || !bevent->base || Z_ISUNDEF(bevent->readcb)) {
 		return;
 	}
 
-  args[0] = bevent->rsrc_id;
-	Z_ADDREF_P(args[0]); /* we do refcount-- later in zval_ptr_dtor */
-	
-	args[1] = bevent->arg;
-	Z_ADDREF_P(args[1]);
-	
-	if (call_user_function(EG(function_table), NULL, bevent->readcb, &retval, 2, args TSRMLS_CC) == SUCCESS) {
+	ZVAL_COPY_VALUE(&args[0], bevent->rsrc_id);
+	ZVAL_COPY_VALUE(&args[1], &bevent->arg);
+
+	if (call_user_function(EG(function_table), NULL, &bevent->readcb, &retval, 2, args) == SUCCESS) {
 		zval_dtor(&retval);
 	}
 
-	zval_ptr_dtor(&(args[0]));
-	zval_ptr_dtor(&(args[1])); 
+	zval_ptr_dtor(&args[0]);
+	zval_ptr_dtor(&args[1]);
 
 }
 /* }}} */
 
 static void _php_bufferevent_writecb(struct bufferevent *be, void *arg) /* {{{ */
 {
-	zval *args[2];
+	zval args[2];
 	zval retval;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
 	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
-	if (!bevent || !bevent->base || !bevent->writecb) {
+	if (!bevent || !bevent->base || Z_ISUNDEF(bevent->writecb)) {
 		return;
 	}
 
-	args[0] = bevent->rsrc_id;
-	Z_ADDREF_P(args[0]); /* we do refcount-- later in zval_ptr_dtor */
-
-	args[1] = bevent->arg;
-	Z_ADDREF_P(args[1]);
+	ZVAL_COPY_VALUE(&args[0], bevent->rsrc_id);
+	ZVAL_COPY_VALUE(&args[1], &bevent->arg);
 	
-	if (call_user_function(EG(function_table), NULL, bevent->writecb, &retval, 2, args TSRMLS_CC) == SUCCESS) {
+	if (call_user_function(EG(function_table), NULL, &bevent->writecb, &retval, 2, args) == SUCCESS) {
 		zval_dtor(&retval);
 	}
 
@@ -309,24 +294,20 @@ static void _php_bufferevent_writecb(struct bufferevent *be, void *arg) /* {{{ *
 
 static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *arg) /* {{{ */
 {
-	zval *args[3];
+	zval args[3];
 	zval retval;
 	php_bufferevent_t *bevent = (php_bufferevent_t *)arg;
 	TSRMLS_FETCH_FROM_CTX(bevent ? bevent->thread_ctx : NULL);
 
-	if (!bevent || !bevent->base || !bevent->errorcb) {
+	if (!bevent || !bevent->base || Z_ISUNDEF(bevent->errorcb)) {
 		return;
 	}
 
-	args[0] = bevent->rsrc_id;
-	Z_ADDREF_P(args[0]); /* we do refcount-- later in zval_ptr_dtor */
+	ZVAL_COPY_VALUE(&args[0], bevent->rsrc_id);
+	ZVAL_LONG(&args[1], (zend_long)what);
+	ZVAL_COPY_VALUE(&args[2], &bevent->arg);
 
-	ZVAL_LONG(&args[1], what);
-
-	args[2] = bevent->arg;
-	Z_ADDREF_P(args[2]);
-	
-	if (call_user_function(EG(function_table), NULL, bevent->errorcb, &retval, 3, args TSRMLS_CC) == SUCCESS) {
+	if (call_user_function(EG(function_table), NULL, &bevent->errorcb, &retval, 3, args) == SUCCESS) {
 		zval_dtor(&retval);
 	}
 
