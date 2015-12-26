@@ -234,8 +234,8 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 	callback = event->callback;
 
 	if (event->stream_id >= 0) {
-		ZVAL_RESOURCE(&args[0], event->stream_id);
-		zend_list_addref(event->stream_id);
+		ZVAL_RES(args[0], zend_register_resource(event->stream_id, le_event));
+		/*zend_list_addref(event->stream_id);*/
 	} else if (events & EV_SIGNAL) {
 		ZVAL_LONG(args[0], fd);
 	} else {
@@ -269,8 +269,8 @@ static void _php_bufferevent_readcb(struct bufferevent *be, void *arg) /* {{{ */
 		return;
 	}
 
-	ZVAL_RESOURCE(&args[0], bevent->rsrc_id);
-	zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
+  ZVAL_RES(args[0], zend_register_resource(bevent->rsrc_id, le_bufferevent));
+	/*zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
 	
 	args[1] = bevent->arg;
 	Z_ADDREF_P(args[1]);
@@ -296,8 +296,8 @@ static void _php_bufferevent_writecb(struct bufferevent *be, void *arg) /* {{{ *
 		return;
 	}
 
-	ZVAL_RESOURCE(&args[0], bevent->rsrc_id);
-	zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
+  ZVAL_RES(args[0], zend_register_resource( bevent->rsrc_id, le_bufferevent));
+	/*zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
 	
 	args[1] = bevent->arg;
 	Z_ADDREF_P(args[1]);
@@ -323,8 +323,8 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 		return;
 	}
 
-	ZVAL_RESOURCE(&args[0], bevent->rsrc_id);
-	zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
+	ZVAL_RES(args[0], zend_register_resource( bevent->rsrc_id, le_bufferevent));
+	/*zend_list_addref(bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
 
 	ZVAL_LONG(&args[1], what);
 
@@ -429,7 +429,7 @@ static PHP_FUNCTION(event_base_loop)
 	}
 
 	ZVAL_TO_BASE(zbase, base);
-	zend_list_addref(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
+	/*zend_list_addref(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
 	ret = event_base_loop(base->base, flags);
 	zend_list_delete(base->rsrc_id);
 
@@ -512,7 +512,7 @@ static PHP_FUNCTION(event_base_set)
 	if (ret == 0) {
 		if (base != old_base) {
 			/* make sure the base is destroyed after the event */
-			zend_list_addref(base->rsrc_id);
+			/*zend_list_addref(base->rsrc_id);*/
 			++base->events;
 		}
 
@@ -727,7 +727,7 @@ static PHP_FUNCTION(event_set)
 	if (events & EV_SIGNAL) {
 		event->stream_id = -1;
 	} else {
-		zend_list_addref(Z_LVAL_PP(fd));
+		/*zend_list_addref(Z_LVAL_PP(fd));*/
 		event->stream_id = Z_LVAL_PP(fd);
 	}
 
@@ -1033,7 +1033,7 @@ static PHP_FUNCTION(event_buffer_base_set)
 	if (ret == 0) {
 		if (base != old_base) {
 			/* make sure the base is destroyed after the event */
-			zend_list_addref(base->rsrc_id);
+			/*zend_list_addref(base->rsrc_id);*/
 			++base->events;
 		}
 
