@@ -125,13 +125,13 @@ typedef struct _php_bufferevent_t { /* {{{ */
 /* }}} */
 
 #define ZVAL_TO_BASE(zval) \
-	(php_event_base_t *)zend_fetch_resource2_ex(zval, NULL, "event base", le_event_base)
+	(php_event_base_t *)zend_fetch_resource2_ex(zval, "event base", le_event_base, le_event_base)
 
 #define ZVAL_TO_EVENT(zval) \
-	(php_event_t *)zend_fetch_resource2_ex(zval, NULL, "event", le_event)
+	(php_event_t *)zend_fetch_resource2_ex(zval, "event", le_event, le_event)
 
 #define ZVAL_TO_BEVENT(zval) \
-	(php_bufferevent_t *)zend_fetch_resource2_ex(zval, NULL, "buffer event", le_bufferevent)
+	(php_bufferevent_t *)zend_fetch_resource2_ex(zval, "buffer event", le_bufferevent, le_bufferevent)
 
 /* {{{ internal funcs */
 
