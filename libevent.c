@@ -402,7 +402,7 @@ static PHP_FUNCTION(event_base_loop)
 
 	base = ZVAL_TO_BASE(zbase);
 	Z_ADDREF_P(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
-	ret = event_base_loop(base->base, flags);
+	ret = event_base_loop(base->base, (int)flags);
 	zend_list_delete(Z_RES_P(base->rsrc_id));
 
 	RETURN_LONG(ret);
@@ -451,7 +451,7 @@ static PHP_FUNCTION(event_base_loopexit)
 		struct timeval time;
 		
 		time.tv_usec = timeout % 1000000;
-		time.tv_sec = timeout / 1000000;
+		time.tv_sec = (long)timeout / 1000000;
 		ret = event_base_loopexit(base->base, &time);
 	}
 
@@ -1076,7 +1076,7 @@ static PHP_FUNCTION(event_buffer_read)
 {
 	zval *zbevent;
 	php_bufferevent_t *bevent;
-	zend_string *data;
+	char *data;
 	zend_long data_size = 0;
 	int ret;
 
@@ -1092,13 +1092,14 @@ static PHP_FUNCTION(event_buffer_read)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "data_size cannot be less than zero");
 		RETURN_FALSE;
 	}
-	data = zend_string_alloc(data_size, 0);
+	data = safe_emalloc((int)data_size, sizeof(char), 1);
 	ret = bufferevent_read(bevent->bevent, data, data_size);
 	if (ret > 0) {
 		if (ret > data_size) { /* paranoia */
 			ret = data_size;
 		}
-		RETVAL_STRINGL(data, ret);
+		data[ret] = '\0';
+		RETURN_STRINGL(data, ret);
 	}
 	zend_string_release(data);
 	RETURN_EMPTY_STRING();
