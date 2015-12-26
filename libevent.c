@@ -366,9 +366,8 @@ static PHP_FUNCTION(event_base_new)
 	base->events = 0;
 
 	tmp = zend_list_insert(base, le_event_base);
-	base->rsrc_id = Z_RES_P(tmp);
-
-	RETVAL_RES(zend_register_resource(base->rsrc_id, le_event_base));
+	base->rsrc_id = Z_RES_HANDLE_P(tmp);
+	ZVAL_COPY_VALUE(return_value, tmp);
 }
 /* }}} */
 
@@ -576,9 +575,8 @@ static PHP_FUNCTION(event_new)
 	TSRMLS_SET_CTX(event->thread_ctx);
 
 	tmp = zend_list_insert(event, le_event);
-	event->rsrc_id = Z_RES_P(tmp);
-
-	RETVAL_RES(zend_register_resource(event->rsrc_id, le_event));
+	event->rsrc_id = Z_RES_HANDLE_P(tmp);
+	ZVAL_COPY_VALUE(return_value, tmp);
 }
 /* }}} */
 
@@ -974,9 +972,8 @@ static PHP_FUNCTION(event_buffer_new)
 	TSRMLS_SET_CTX(bevent->thread_ctx);
 
 	tmp = zend_list_insert(bevent, le_bufferevent);
-	bevent->rsrc_id = Z_RES_P(tmp);
-
-	RETVAL_RES(zend_register_resource(bevent->rsrc_id, le_bufferevent));
+	bevent->rsrc_id = Z_RES_HANDLE_P(tmp);
+	ZVAL_COPY_VALUE(return_value, tmp);
 }
 /* }}} */
 
