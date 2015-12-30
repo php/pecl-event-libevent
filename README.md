@@ -6,8 +6,8 @@ Libevent is a library that provides a mechanism to execute a callback function w
 More information about Libevent can be found at » http://libevent.org/.
 
 --
-This fork is the port of the module to [PHP7 / PHPNG](https://wiki.php.net/phpng-upgrading) 
---
+**NOTE :** This fork is the port of the module to [PHP7 / PHPNG](https://wiki.php.net/phpng-upgrading) 
+
 
 ## Requirements 
 
