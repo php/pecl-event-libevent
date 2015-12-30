@@ -5,31 +5,31 @@ Libevent is a library that provides a mechanism to execute a callback function w
 
 More information about Libevent can be found at » http://libevent.org/.
 
-# Requirements 
+## Requirements 
 
-This extension requires (» libevent)[http://libevent.org/] library. Minimal required version is 1.4.0.
+This extension requires [» libevent](http://libevent.org/) library. Minimal required version is 1.4.0.
 
-# Installation 
+## Installation 
 
-Information for installing this PECL extension may be found in the manual chapter titled (Installation of PECL extensions)[http://php.net/manual/en/install.pecl.php]. Additional information such as new releases, downloads, source files, maintainer information, and a CHANGELOG, can be located here: » http://pecl.php.net/package/libevent.
+Information for installing this PECL extension may be found in the manual chapter titled [Installation of PECL extensions](http://php.net/manual/en/install.pecl.php). Additional information such as new releases, downloads, source files, maintainer information, and a CHANGELOG, can be located here: » http://pecl.php.net/package/libevent.
 
-# Predefined Constants
+## Predefined Constants
 
 The constants below are defined by this extension, and will only be available when the extension has either been compiled into PHP or dynamically loaded at runtime.
 
-EV_TIMEOUT (integer)
-EV_READ (integer)
-EV_WRITE (integer)
-EV_SIGNAL (integer)
-EV_PERSIST (integer)
-EVLOOP_NONBLOCK (integer)
-EVLOOP_ONCE (integer)
+* EV_TIMEOUT (integer)
+* EV_READ (integer)
+* EV_WRITE (integer)
+* EV_SIGNAL (integer)
+* EV_PERSIST (integer)
+* EVLOOP_NONBLOCK (integer)
+* EVLOOP_ONCE (integer)
 
-# Examples
+## Examples
 
 Example #1 polling STDIN using basic API
 
-```
+```php
 <?php
 
 function print_line($fd, $events, $arg)
@@ -66,7 +66,7 @@ event_base_loop($base);
 
 Example #2 polling STDIN using buffered event API
 
-```
+```php
 <?php
 
 function print_line($buf, $arg)
@@ -97,6 +97,6 @@ event_buffer_enable($eb, EV_READ);
 event_base_loop($base);
 ```
 
-# Credits
+## Credits
 
 Antony Dovgal, Arnaud Le Blanc, Ioan Chiriac
