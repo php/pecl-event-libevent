@@ -172,7 +172,6 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 	}
 	if (Z_TYPE_P(&event->stream_id) != IS_NULL) {
 		zend_list_delete(Z_RES_P(&event->stream_id));
-		ZVAL_NULL(&event->stream_id);
 	}
 	event_del(event->event);
 
@@ -508,11 +507,14 @@ static PHP_FUNCTION(event_base_set)
 			/* make sure the base is destroyed after the event */
 			Z_ADDREF_P(base->rsrc_id);
 			++base->events;
-		}
 
-		if (old_base && base != old_base && old_base->rsrc_id != NULL) {
-			--old_base->events;
-			zend_list_delete(Z_RES_P(old_base->rsrc_id));
+			/* deference the event from the old base */
+			if (old_base) {
+				--old_base->events;
+				if (old_base->rsrc_id != NULL) {
+					zend_list_delete(Z_RES_P(old_base->rsrc_id));
+				}
+			}
 		}
 
 		event->base = base;
@@ -705,9 +707,9 @@ static PHP_FUNCTION(event_set)
 	zval_addref_p(zcallback);
 
 	callback = emalloc(sizeof(php_event_callback_t));
-	ZVAL_COPY_VALUE(&callback->func, zcallback);
+	ZVAL_COPY(&callback->func, zcallback);
 	if(zarg) {
-		ZVAL_COPY_VALUE(&callback->arg, zarg);
+		ZVAL_COPY(&callback->arg, zarg);
 	} else {
 		ZVAL_NULL(&callback->arg);
 	}
@@ -717,8 +719,7 @@ static PHP_FUNCTION(event_set)
 	if (events & EV_SIGNAL) {
 		ZVAL_NULL(&event->stream_id);
 	} else {
-		ZVAL_COPY_VALUE(&event->stream_id, fd);
-		Z_ADDREF_P(&event->stream_id);
+		ZVAL_COPY(&event->stream_id, fd);
 	}
 
 	event_set(event->event, (int)file_desc, (short)events, _php_event_callback, event);
@@ -816,9 +817,9 @@ static PHP_FUNCTION(event_timer_set)
 	zval_addref_p(zcallback);
 
 	callback = emalloc(sizeof(php_event_callback_t));
-	ZVAL_COPY_VALUE(&callback->func, zcallback);
+	ZVAL_COPY(&callback->func, zcallback);
 	if (zarg) {
-		ZVAL_COPY_VALUE(&callback->arg, zarg);
+		ZVAL_COPY(&callback->arg, zarg);
 	}
 	else {
 		ZVAL_NULL(&callback->arg);
@@ -969,7 +970,7 @@ static PHP_FUNCTION(event_buffer_new)
 	}
 
 	if (zarg) {
-		ZVAL_COPY_VALUE(&bevent->arg, zarg);
+		ZVAL_COPY(&bevent->arg, zarg);
 	}
 	else {
 		ZVAL_NULL(&bevent->arg);
@@ -994,7 +995,11 @@ static PHP_FUNCTION(event_buffer_free)
 	}
 
 	bevent = ZVAL_TO_BEVENT(zbevent);
-	zend_list_delete(Z_RES_P(bevent->rsrc_id));
+	
+	// Z_DELREF_P(bevent->rsrc_id);
+	if (bevent) {
+		zend_list_close(Z_RES_P(bevent->rsrc_id));
+	}
 }
 /* }}} */
 
@@ -1022,12 +1027,13 @@ static PHP_FUNCTION(event_buffer_base_set)
 			/* make sure the base is destroyed after the event */
 			Z_ADDREF_P(base->rsrc_id);
 			++base->events;
-		}
 
-		if (old_base) {
-			--old_base->events;
-			if (old_base->rsrc_id && Z_TYPE_P(old_base->rsrc_id) != IS_NULL) {
-				zend_list_delete(Z_RES_P(old_base->rsrc_id));
+			/* deference the event from the old base */
+			if (old_base) {
+				--old_base->events;
+				if (old_base->rsrc_id) {
+					zend_list_delete(Z_RES_P(old_base->rsrc_id));
+				}
 			}
 		}
 
@@ -1108,6 +1114,7 @@ static PHP_FUNCTION(event_buffer_read)
 	php_bufferevent_t *bevent;
 	char *data;
 	zend_long data_size = 0;
+	zend_string *str = NULL;
 	int ret;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbevent, &data_size) != SUCCESS) {
@@ -1122,17 +1129,19 @@ static PHP_FUNCTION(event_buffer_read)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "data_size cannot be less than zero");
 		RETURN_FALSE;
 	}
+
 	data = safe_emalloc((int)data_size, sizeof(char), 1);
 	ret = bufferevent_read(bevent->bevent, data, data_size);
+
 	if (ret > 0) {
 		if (ret > data_size) { /* paranoia */
 			ret = data_size;
 		}
 		data[ret] = '\0';
-		RETURN_STRINGL(data, ret);
 	}
+	str = zend_string_init(data, ret, 0);
 	efree(data);
-	RETURN_EMPTY_STRING();
+	RETURN_STR(str);
 }
 /* }}} */
 
@@ -1175,10 +1184,12 @@ static PHP_FUNCTION(event_buffer_disable)
 
 	bevent = ZVAL_TO_BEVENT(zbevent);
 
-	ret = bufferevent_disable(bevent->bevent, events);
+	if (bevent) {
+		ret = bufferevent_disable(bevent->bevent, events);
 
-	if (ret == 0) {
-		RETURN_TRUE;
+		if (ret == 0) {
+			RETURN_TRUE;
+		}
 	}
 	RETURN_FALSE;
 }
@@ -1332,25 +1343,25 @@ static PHP_FUNCTION(event_buffer_set_callback)
 	}
 
 	if (zreadcb) {
-		ZVAL_COPY_VALUE(&bevent->readcb, zreadcb);
+		ZVAL_COPY(&bevent->readcb, zreadcb);
 	} else {
 		ZVAL_UNDEF(&bevent->readcb);
 	}
 
 	if (zwritecb) {
-		ZVAL_COPY_VALUE(&bevent->writecb, zwritecb);
+		ZVAL_COPY(&bevent->writecb, zwritecb);
 	} else {
 		ZVAL_UNDEF(&bevent->writecb);
 	}
 	
 	if (zerrorcb) {
-		ZVAL_COPY_VALUE(&bevent->errorcb, zerrorcb);
+		ZVAL_COPY(&bevent->errorcb, zerrorcb);
 	} else {
 		ZVAL_UNDEF(&bevent->errorcb);
 	}
 	
 	if (zarg) {
-		ZVAL_COPY_VALUE(&bevent->arg, zarg);
+		ZVAL_COPY(&bevent->arg, zarg);
 	} else {
 		ZVAL_NULL(&bevent->arg);
 	}
