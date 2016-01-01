@@ -234,7 +234,7 @@ static void _php_event_callback(int fd, short events, void *arg) /* {{{ */
 
 	args[2] = callback->arg;
 	if (Z_TYPE_P(&args[2]) != IS_NULL) {
-		Z_ADDREF_P(&args[2]);
+		Z_TRY_ADDREF_P(&args[2]);
 	}
 	
 
@@ -266,7 +266,7 @@ static void _php_bufferevent_readcb(struct bufferevent *be, void *arg) /* {{{ */
 
 	args[1] = bevent->arg;
 	if (Z_TYPE_P(&args[1]) != IS_NULL) {
-		Z_ADDREF_P(&args[1]);
+		Z_TRY_ADDREF_P(&args[1]);
 	}
 
 	if (call_user_function(EG(function_table), NULL, &bevent->readcb, &retval, 2, args) == SUCCESS) {
@@ -294,7 +294,7 @@ static void _php_bufferevent_writecb(struct bufferevent *be, void *arg) /* {{{ *
 
 	args[1] = bevent->arg;
 	if (Z_TYPE_P(&args[1]) != IS_NULL) {
-		Z_ADDREF_P(&args[1]);
+		Z_TRY_ADDREF_P(&args[1]);
 	}
 
 	if (call_user_function(EG(function_table), NULL, &bevent->writecb, &retval, 2, args) == SUCCESS) {
@@ -324,7 +324,7 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 	ZVAL_LONG(&args[1], (zend_long)what);
 	args[2] = bevent->arg;
 	if (Z_TYPE_P(&args[2]) != IS_NULL) {
-		Z_ADDREF_P(&args[2]);
+		Z_TRY_ADDREF_P(&args[2]);
 	}
 
 
