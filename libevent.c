@@ -569,6 +569,7 @@ static PHP_FUNCTION(event_new)
 	event->callback = NULL;
 	event->base = NULL;
 	event->in_free = 0;
+	ZVAL_NULL(&event->stream_id);
 	TSRMLS_SET_CTX(event->thread_ctx);
 
 	event->rsrc_id = zend_list_insert(event, le_event);
