@@ -44,4 +44,6 @@ string(1) "5"
 string(1) "6"
 string(1) "7"
 string(1) "8"
+string(1) "9"
+string(1) "a"
 int(0)

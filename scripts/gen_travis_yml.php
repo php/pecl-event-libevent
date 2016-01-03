@@ -18,7 +18,7 @@ $env = $gen([
 	"PHP" => ["master"],
 	"enable_debug",
 	"enable_maintainer_zts",
-	"with_openssl"
+	"with_openssl" => ["yes"]
 ]);
 foreach ($env as $e) {
 	printf("  - %s\n", $e);
