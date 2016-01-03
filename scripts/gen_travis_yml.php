@@ -15,9 +15,10 @@ env:
 
 $gen = include __DIR__ . "/../travis/pecl/gen-matrix.php";
 $env = $gen([
-	"PHP" => ["master", "7.0.1"],
+	"PHP" => ["master"],
 	"enable_debug",
 	"enable_maintainer_zts",
+	"with_openssl"
 ]);
 foreach ($env as $e) {
 	printf("  - %s\n", $e);
