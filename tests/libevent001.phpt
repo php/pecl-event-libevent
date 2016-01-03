@@ -22,17 +22,16 @@ function foo($fd, $events, $arg)
 $base = event_base_new();
 $event = event_new();
 
-$fd = fopen(__DIR__ . '/input.txt', 'r');
+$fd = fopen('https://raw.githubusercontent.com/expressif/pecl-event-libevent/master/tests/input.txt', 'r');
 
 var_dump(event_set($event, $fd, EV_READ | EV_PERSIST, "foo", array($event, $base)));
 var_dump(event_set($event, $fd, EV_READ | EV_PERSIST, "foo", array($event, $base)));
-
-event_base_set($event, $base);
-
+var_dump(event_base_set($event, $base));
 var_dump(event_add($event));
 var_dump(event_base_loop($base));
 ?>
 --EXPECTF--
+bool(true)
 bool(true)
 bool(true)
 bool(true)
