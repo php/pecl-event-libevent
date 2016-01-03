@@ -1,6 +1,8 @@
 Libevent bindings for PHP
 =========================
 
+[![Build Status](https://travis-ci.org/expressif/pecl-event-libevent.svg)](https://travis-ci.org/expressif/pecl-event-libevent)
+
 Libevent is a library that provides a mechanism to execute a callback function when a specific event occurs on a file descriptor or after a timeout has been reached.
 
 More information about Libevent can be found at » http://libevent.org/.
