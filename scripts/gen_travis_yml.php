@@ -15,7 +15,7 @@ env:
 
 $gen = include __DIR__ . "/../travis/pecl/gen-matrix.php";
 $env = $gen([
-	"PHP" => ["master"],
+	"PHP" => ["master", "7.0.2"],
 	"enable_debug",
 	"enable_maintainer_zts",
 ]);
