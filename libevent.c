@@ -178,7 +178,7 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 		--event->base->events;
 	}
 	if (Z_TYPE_P(&event->stream_id) != IS_NULL) {
-		zend_list_delete(Z_RES_P(&event->stream_id));
+		zend_list_close(Z_RES_P(&event->stream_id));
 	}
 	event_del(event->event);
 
@@ -186,7 +186,7 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 	efree(event->event);
 
 	if (base_id) {
-		zend_list_delete(Z_RES_P(base_id));
+		zend_list_close(Z_RES_P(base_id));
 	}
 }
 /* }}} */
@@ -212,7 +212,7 @@ ZEND_RSRC_DTOR_FUNC(_php_bufferevent_dtor) /* {{{ */
 	bufferevent_free(bevent->bevent);
 
 	if (base_id) {
-		zend_list_delete(Z_RES_P(base_id));
+		zend_list_close(Z_RES_P(base_id));
 	}
 }
 /* }}} */
@@ -396,7 +396,8 @@ static PHP_FUNCTION(event_base_reinit) {
 }
 /* }}} */
 
-/* {{{ proto boolean event_base_free(resource base) 
+/* {{{ proto void event_base_free(resource base)
+ *     return type is defined void at http://php.net/manual/en/function.event-base-free.php
  */
 static PHP_FUNCTION(event_base_free)
 {
@@ -407,18 +408,15 @@ static PHP_FUNCTION(event_base_free)
 		return;
 	}
 
-	base = ZVAL_TO_BASE(zbase);
+	if (!(base = ZVAL_TO_BASE(zbase)))
+		return;
 
-	if (base) {
-		if (base->events > 0) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "base has events attached to it and cannot be freed");
-		}
-		else {
-			zend_list_close(Z_RES_P(base->rsrc_id));
-			RETURN_TRUE;
-		}
+	if (base->events > 0) {
+		php_error_docref(NULL, E_WARNING, "base has events attached to it and cannot be freed");
+		RETURN_FALSE;
 	}
-	RETURN_FALSE;
+
+	zend_list_close(Z_RES_P(base->rsrc_id));
 }
 /* }}} */
 
@@ -438,7 +436,7 @@ static PHP_FUNCTION(event_base_loop)
 	base = ZVAL_TO_BASE(zbase);
 	Z_ADDREF_P(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
 	ret = event_base_loop(base->base, (int)flags);
-	zend_list_delete(Z_RES_P(base->rsrc_id));
+	zend_list_close(Z_RES_P(base->rsrc_id));
 
 	RETURN_LONG(ret);
 }
@@ -526,7 +524,7 @@ static PHP_FUNCTION(event_base_set)
 			if (old_base) {
 				--old_base->events;
 				if (old_base->rsrc_id != NULL) {
-					zend_list_delete(Z_RES_P(old_base->rsrc_id));
+					zend_list_close(Z_RES_P(old_base->rsrc_id));
 				}
 			}
 		}
@@ -843,7 +841,7 @@ static PHP_FUNCTION(event_timer_set)
 	old_callback = event->callback;
 	event->callback = callback;
 	if (Z_TYPE_P(&event->stream_id) != IS_NULL) {
-		zend_list_delete(Z_RES_P(&event->stream_id));
+		zend_list_close(Z_RES_P(&event->stream_id));
 		ZVAL_NULL(&event->stream_id);
 	}
 
@@ -1046,7 +1044,7 @@ static PHP_FUNCTION(event_buffer_base_set)
 			if (old_base) {
 				--old_base->events;
 				if (old_base->rsrc_id) {
-					zend_list_delete(Z_RES_P(old_base->rsrc_id));
+					zend_list_close(Z_RES_P(old_base->rsrc_id));
 				}
 			}
 		}
