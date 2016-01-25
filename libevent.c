@@ -1269,7 +1269,7 @@ static PHP_FUNCTION(event_buffer_fd_set)
 			}
 		} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
-			php_sock = (php_socket *)zend_fetch_resource_ex(zfd, NULL, php_sockets_le_socket())
+			php_sock = (php_socket *)zend_fetch_resource_ex(zfd, NULL, php_sockets_le_socket());
 			if (php_sock) {
 				fd = php_sock->bsd_socket;
 			} else {
