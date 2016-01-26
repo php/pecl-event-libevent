@@ -142,7 +142,7 @@ static inline void _php_event_callback_free(php_event_callback_t *callback) /* {
 	}
 	zval_ptr_dtor(&callback->func);
 	zval_ptr_dtor(&callback->arg);
-	efree(callback);
+	safe_efree(callback);
 }
 /* }}} */
 
@@ -153,7 +153,7 @@ ZEND_RSRC_DTOR_FUNC(_php_event_base_dtor) /* {{{ */
 	}
 	php_event_base_t *base = (php_event_base_t*)res->ptr;
 	event_base_free(base->base);
-	efree(base);
+	safe_efree(base);
 }
 /* }}} */
 
@@ -169,6 +169,7 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 	if (!event) return;
 
 	if (event->in_free) {
+		safe_efree(event);
 		return;
 	}
 
@@ -184,8 +185,8 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 	event_del(event->event);
 
 	_php_event_callback_free(event->callback);
-	efree(event->event);
-	efree(event);
+	safe_efree(event->event);
+	safe_efree(event);
 
 	if (base_id) {
 		zend_list_close(Z_RES_P(base_id));
@@ -203,6 +204,9 @@ ZEND_RSRC_DTOR_FUNC(_php_bufferevent_dtor) /* {{{ */
 	php_bufferevent_t *bevent = (php_bufferevent_t*)res->ptr;
 	zval *base_id = NULL;
 
+	if (!bevent)
+		return;
+
 	if (bevent->base) {
 		base_id = bevent->base->rsrc_id;
 		--bevent->base->events;
@@ -212,12 +216,13 @@ ZEND_RSRC_DTOR_FUNC(_php_bufferevent_dtor) /* {{{ */
 		zval_ptr_dtor(&bevent->errorcb);
 		zval_ptr_dtor(&bevent->arg);
 		bufferevent_free(bevent->bevent);
-		efree(bevent);
 
 		if (base_id) {
 			zend_list_close(Z_RES_P(base_id));
 		}
 	}
+
+	safe_efree(bevent);
 }
 /* }}} */
 
@@ -369,7 +374,7 @@ static PHP_FUNCTION(event_base_new)
 	base->rsrc_id = NULL;
 	base->base = event_base_new();
 	if (!base->base) {
-		efree(base);
+		safe_efree(base);
 		RETURN_FALSE;
 	}
 
@@ -1166,7 +1171,7 @@ static PHP_FUNCTION(event_buffer_read)
 		data[ret] = '\0';
 	}
 	str = zend_string_init(data, ret, 0);
-	efree(data);
+	safe_efree(data);
 	RETURN_STR(str);
 }
 /* }}} */
