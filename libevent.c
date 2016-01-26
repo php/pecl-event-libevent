@@ -1042,7 +1042,7 @@ static PHP_FUNCTION(event_buffer_base_set)
 		return;
 	}
 
-    if (!(base = ZVAL_TO_BASE(zbase)))
+	if (!(base = ZVAL_TO_BASE(zbase)))
 		RETURN_FALSE;
 	if (!(bevent = ZVAL_TO_BEVENT(zbevent)))
 		RETURN_FALSE;
