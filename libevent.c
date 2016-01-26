@@ -318,6 +318,9 @@ static void _php_bufferevent_errorcb(struct bufferevent *be, short what, void *a
 		return;
 	}
 
+	if (!bevent->rsrc_id)
+		return;
+
 	ZVAL_COPY(&args[0], bevent->rsrc_id); /* we do refcount-- later in zval_ptr_dtor */
 
 	ZVAL_LONG(&args[1], (zend_long)what);
