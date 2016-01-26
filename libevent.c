@@ -185,6 +185,7 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 
 	_php_event_callback_free(event->callback);
 	efree(event->event);
+	efree(event);
 
 	if (base_id) {
 		zend_list_close(Z_RES_P(base_id));
