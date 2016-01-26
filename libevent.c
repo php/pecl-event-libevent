@@ -56,26 +56,6 @@ never version, so this ifdefs would go away. */
 # include <event.h>
 #endif
 
-#if PHP_MAJOR_VERSION < 5
-# ifdef PHP_WIN32
-typedef SOCKET php_socket_t;
-# else
-typedef int php_socket_t;
-# endif
-
-# ifdef ZTS
-#  define TSRMLS_FETCH_FROM_CTX(ctx)  void ***tsrm_ls = (void ***) ctx
-#  define TSRMLS_SET_CTX(ctx)     ctx = (void ***) tsrm_ls
-# else
-#  define TSRMLS_FETCH_FROM_CTX(ctx)
-#  define TSRMLS_SET_CTX(ctx)
-# endif
-
-# ifndef Z_ADDREF_P
-#  define Z_ADDREF_P(x) (x)->refcount++
-# endif
-#endif
-
 static int le_event_base;
 static int le_event;
 static int le_bufferevent;
