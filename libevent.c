@@ -437,7 +437,6 @@ static PHP_FUNCTION(event_base_loop)
 	base = ZVAL_TO_BASE(zbase);
 	Z_ADDREF_P(base->rsrc_id); /* make sure the base cannot be destroyed during the loop */
 	ret = event_base_loop(base->base, (int)flags);
-	zend_list_close(Z_RES_P(base->rsrc_id));
 
 	RETURN_LONG(ret);
 }
@@ -601,7 +600,15 @@ static PHP_FUNCTION(event_free)
 		return;
 	}
 
-	event = ZVAL_TO_EVENT(zevent);
+	if (!(event = ZVAL_TO_EVENT(zevent)))
+		return;
+
+	event->in_free = 1;
+	if (event->base) {
+		--event->base->events;
+		event->base = NULL;
+	}
+	event_del (event->event);
 	zend_list_close(Z_RES_P(event->rsrc_id));
 }
 /* }}} */
