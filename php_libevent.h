@@ -55,6 +55,10 @@ static zend_always_inline zend_uint zval_delref_p(zval* pz) {
 }
 #endif
 
+#ifndef safe_efree
+#define safe_efree(x) do {if(x){efree(x); x=NULL;}} while(0)
+#endif
+
 #endif	/* PHP_LIBEVENT_H */
 
 
