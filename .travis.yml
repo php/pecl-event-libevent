@@ -10,10 +10,10 @@ addons:
 
 env:
  matrix:
-  - PHP=master enable_debug=no enable_maintainer_zts=no with_openssl=yes
-  - PHP=master enable_debug=yes enable_maintainer_zts=no with_openssl=yes
-  - PHP=master enable_debug=no enable_maintainer_zts=yes with_openssl=yes
-  - PHP=master enable_debug=yes enable_maintainer_zts=yes with_openssl=yes
+  - PHP=7.0 enable_debug=no enable_maintainer_zts=no with_openssl=yes
+  - PHP=7.0 enable_debug=yes enable_maintainer_zts=no with_openssl=yes
+  - PHP=7.0 enable_debug=no enable_maintainer_zts=yes with_openssl=yes
+  - PHP=7.0 enable_debug=yes enable_maintainer_zts=yes with_openssl=yes
 
 before_script:
  - make -f travis/pecl/Makefile php
