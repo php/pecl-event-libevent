@@ -37,12 +37,6 @@
 # define LIBEVENT_SOCKETS_SUPPORT
 #endif
 
-#ifndef ZEND_FETCH_RESOURCE_NO_RETURN 
-# define ZEND_FETCH_RESOURCE_NO_RETURN(rsrc, rsrc_type, passed_id, default_id, resource_type_name, resource_type) \
-	(rsrc = (rsrc_type) zend_fetch_resource2(passed_id TSRMLS_CC, default_id, resource_type_name, NULL, 1, resource_type))
-#endif
-
-
 #ifdef PHP_WIN32
 /* XXX compiling with 2.x on Windows. Luckily the ext code works thanks to the
 compat exports from the libevent. However it might need to be adapted to the
@@ -349,7 +343,7 @@ static PHP_FUNCTION(event_base_new)
 {
 	php_event_base_t *base;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "") != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "") != SUCCESS) {
 		return;
 	}
 
@@ -374,7 +368,7 @@ static PHP_FUNCTION(event_base_reinit) {
     zval *zbase;
     php_event_base_t *base;
     int r = 0;
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zbase) != SUCCESS) {
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zbase) != SUCCESS) {
         return;
     }
 
@@ -398,7 +392,7 @@ static PHP_FUNCTION(event_base_free)
 	zval *zbase;
 	php_event_base_t *base;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zbase) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zbase) != SUCCESS) {
 		return;
 	}
 
@@ -423,7 +417,7 @@ static PHP_FUNCTION(event_base_loop)
 	zend_long flags = 0;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zbase, &flags) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r|l", &zbase, &flags) != SUCCESS) {
 		return;
 	}
 
@@ -443,7 +437,7 @@ static PHP_FUNCTION(event_base_loopbreak)
 	php_event_base_t *base;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zbase) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zbase) != SUCCESS) {
 		return;
 	}
 
@@ -465,7 +459,7 @@ static PHP_FUNCTION(event_base_loopexit)
 	int ret;
 	zend_long timeout = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zbase, &timeout) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r|l", &zbase, &timeout) != SUCCESS) {
 		return;
 	}
 
@@ -498,7 +492,7 @@ static PHP_FUNCTION(event_base_set)
 	php_event_t *event;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rr", &zevent, &zbase) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rr", &zevent, &zbase) != SUCCESS) {
 		return;
 	}
 
@@ -541,7 +535,7 @@ static PHP_FUNCTION(event_base_priority_init)
 	zend_long npriorities;
 	int ret;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rl", &zbase, &npriorities) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rl", &zbase, &npriorities) != SUCCESS) {
 		return;
 	}
 
@@ -549,7 +543,7 @@ static PHP_FUNCTION(event_base_priority_init)
 		RETURN_FALSE;
 
 	if (npriorities < 0) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "npriorities cannot be less than zero");
+		php_error_docref(NULL, E_WARNING, "npriorities cannot be less than zero");
 		RETURN_FALSE;
 	}
 
@@ -568,7 +562,7 @@ static PHP_FUNCTION(event_new)
 {
 	php_event_t *event;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "") != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "") != SUCCESS) {
 		return;
 	}
 
@@ -593,7 +587,7 @@ static PHP_FUNCTION(event_free)
 	zval *zevent;
 	php_event_t *event;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r", &zevent) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r", &zevent) != SUCCESS) {
 		return;
 	}
 
@@ -619,7 +613,7 @@ static PHP_FUNCTION(event_add)
 	int ret;
 	zend_long timeout = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "r|l", &zevent, &timeout) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "r|l", &zevent, &timeout) != SUCCESS) {
 		return;
 	}
 
@@ -627,7 +621,7 @@ static PHP_FUNCTION(event_add)
 		RETURN_FALSE;
 
 	if (!event->base) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to add event without an event base");
+		php_error_docref(NULL, E_WARNING, "Unable to add event without an event base");
 		RETURN_FALSE;
 	}
 
@@ -677,7 +671,7 @@ static PHP_FUNCTION(event_set)
 		convert_to_long_ex(fd);
 		file_desc = Z_LVAL_P(fd);
 		if (file_desc < 0 || file_desc >= NSIG) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid signal passed");
+			php_error_docref(NULL, E_WARNING, "invalid signal passed");
 			RETURN_FALSE;
 		}
 	} else {
@@ -693,25 +687,25 @@ static PHP_FUNCTION(event_set)
 				if (php_sock) {
 					file_desc = php_sock->bsd_socket;
 				} else {
-					php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be either valid PHP stream or valid PHP socket resource");
+					php_error_docref(NULL, E_WARNING, "fd argument must be either valid PHP stream or valid PHP socket resource");
 					RETURN_FALSE;
 				}
 #else
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource");
+				php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource");
 				RETURN_FALSE;
 #endif
 			}
 		} else if (Z_TYPE_P(fd) == IS_LONG) {
 			file_desc = Z_LVAL_P(fd);
 			if (file_desc < 0) {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "invalid file descriptor passed");
+				php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
 				RETURN_FALSE;
 			}
 		} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
+			php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
 #else
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
+			php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
 #endif
 			RETURN_FALSE;
 		}
@@ -773,7 +767,7 @@ static PHP_FUNCTION(event_del)
 		RETURN_FALSE;
 
 	if (!event->base) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to delete event without an event base");
+		php_error_docref(NULL, E_WARNING, "Unable to delete event without an event base");
 		RETURN_FALSE;
 	}
 
@@ -801,7 +795,7 @@ static PHP_FUNCTION(event_priority_set)
 		RETURN_FALSE;
 
 	if (!event->base) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to set event priority without an event base");
+		php_error_docref(NULL, E_WARNING, "Unable to set event priority without an event base");
 		RETURN_FALSE;
 	}
 
@@ -928,11 +922,11 @@ static PHP_FUNCTION(event_buffer_new)
 			if (php_sock) {
 				fd = php_sock->bsd_socket;
 			} else {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
+				php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
 				RETURN_FALSE;
 			}
 #else
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
+			php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
 			RETURN_FALSE;
 #endif
 		}
@@ -940,9 +934,9 @@ static PHP_FUNCTION(event_buffer_new)
 		fd = Z_LVAL_P(zfd);
 	} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
+		php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
 #else
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
+		php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
 #endif
 		RETURN_FALSE;
 	}
@@ -960,7 +954,7 @@ static PHP_FUNCTION(event_buffer_new)
 
 	if (Z_TYPE_P(zwritecb) != IS_NULL) {
 		if (!zend_is_callable(zwritecb, 0, &func_name)) {
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid write callback", ZSTR_VAL(func_name));
+			php_error_docref(NULL, E_WARNING, "'%s' is not a valid write callback", ZSTR_VAL(func_name));
 			zend_string_release(func_name);
 			RETURN_FALSE;
 		}
@@ -970,7 +964,7 @@ static PHP_FUNCTION(event_buffer_new)
 	}
 
 	if (!zend_is_callable(zerrorcb, 0, &func_name)) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "'%s' is not a valid error callback", ZSTR_VAL(func_name));
+		php_error_docref(NULL, E_WARNING, "'%s' is not a valid error callback", ZSTR_VAL(func_name));
 		zend_string_release(func_name);
 		RETURN_FALSE;
 	}
@@ -1089,7 +1083,7 @@ static PHP_FUNCTION(event_buffer_priority_set)
 		RETURN_FALSE;
 
 	if (!bevent->base) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Unable to set event priority without an event base");
+		php_error_docref(NULL, E_WARNING, "Unable to set event priority without an event base");
 		RETURN_FALSE;
 	}
 
@@ -1123,7 +1117,7 @@ static PHP_FUNCTION(event_buffer_write)
 	if (ZEND_NUM_ARGS() < 3 || data_size < 0) {
 		data_size = data_len;
 	} else if (data_size > data_len) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "data_size out of range");
+		php_error_docref(NULL, E_WARNING, "data_size out of range");
 		RETURN_FALSE;
 	}
 
@@ -1157,7 +1151,7 @@ static PHP_FUNCTION(event_buffer_read)
 	if (data_size == 0) {
 		RETURN_EMPTY_STRING();
 	} else if (data_size < 0) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "data_size cannot be less than zero");
+		php_error_docref(NULL, E_WARNING, "data_size cannot be less than zero");
 		RETURN_FALSE;
 	}
 
@@ -1295,11 +1289,11 @@ static PHP_FUNCTION(event_buffer_fd_set)
 			if (php_sock) {
 				fd = php_sock->bsd_socket;
 			} else {
-				php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
+				php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
 				RETURN_FALSE;
 			}
 #else
-			php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
+			php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
 			RETURN_FALSE;
 #endif
 		}
@@ -1307,9 +1301,9 @@ static PHP_FUNCTION(event_buffer_fd_set)
 		fd = Z_LVAL_P(zfd);
 	} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
+		php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
 #else
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
+		php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
 #endif
 		RETURN_FALSE;
 	}
@@ -1326,7 +1320,7 @@ static PHP_FUNCTION(event_buffer_set_callback)
 	zval *zbevent, *zreadcb, *zwritecb, *zerrorcb, *zarg = NULL;
 	zend_string *func_name;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "rzzz|z", &zbevent, &zreadcb, &zwritecb, &zerrorcb, &zarg) != SUCCESS) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS(), "rzzz|z", &zbevent, &zreadcb, &zwritecb, &zerrorcb, &zarg) != SUCCESS) {
 		return;
 	}
 
