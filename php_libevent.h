@@ -41,18 +41,8 @@ extern zend_module_entry libevent_module_entry;
 # endif
 #endif
 
-#ifndef Z_ADDREF_P
-#define Z_ADDREF_P(pz)			zval_addref_p(pz)
-static zend_always_inline zend_uint zval_addref_p(zval* pz) {
-	return ++pz->refcount;
-}
-#endif
-
-#ifndef Z_DELREF_P
-#define Z_DELREF_P(pz)			zval_delref_p(pz)
-static zend_always_inline zend_uint zval_delref_p(zval* pz) {
-	return --pz->refcount;
-}
+#ifndef safe_efree
+#define safe_efree(x) do {if(x){efree(x); x=NULL;}} while(0)
 #endif
 
 #endif	/* PHP_LIBEVENT_H */
