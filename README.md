@@ -105,4 +105,4 @@ event_base_loop($base);
 
 ## Credits
 
-Antony Dovgal, Arnaud Le Blanc, Ioan Chiriac
+Antony Dovgal, Arnaud Le Blanc, Ioan Chiriac, JoungKyun KIm
