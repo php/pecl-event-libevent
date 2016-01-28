@@ -718,8 +718,6 @@ static PHP_FUNCTION(event_set)
 	}
 	zend_string_release(func_name);
 
-	Z_TRY_ADDREF_P(zcallback);
-
 	callback = emalloc(sizeof(php_event_callback_t));
 	ZVAL_COPY(&callback->func, zcallback);
 	if(zarg) {
@@ -830,8 +828,6 @@ static PHP_FUNCTION(event_timer_set)
 		RETURN_FALSE;
 	}
 	zend_string_release(func_name);
-
-	Z_TRY_ADDREF_P(zcallback);
 
 	callback = emalloc(sizeof(php_event_callback_t));
 	ZVAL_COPY(&callback->func, zcallback);
