@@ -718,7 +718,7 @@ static PHP_FUNCTION(event_set)
 	}
 	zend_string_release(func_name);
 
-	zval_addref_p(zcallback);
+	Z_TRY_ADDREF_P(zcallback);
 
 	callback = emalloc(sizeof(php_event_callback_t));
 	ZVAL_COPY(&callback->func, zcallback);
@@ -831,7 +831,7 @@ static PHP_FUNCTION(event_timer_set)
 	}
 	zend_string_release(func_name);
 
-	zval_addref_p(zcallback);
+	Z_TRY_ADDREF_P(zcallback);
 
 	callback = emalloc(sizeof(php_event_callback_t));
 	ZVAL_COPY(&callback->func, zcallback);
