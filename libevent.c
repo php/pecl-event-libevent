@@ -126,7 +126,11 @@ ZEND_RSRC_DTOR_FUNC(_php_event_base_dtor) /* {{{ */
 		return;
 	}
 	php_event_base_t *base = (php_event_base_t*)res->ptr;
-	event_base_free(base->base);
+	if (!base)
+		return;
+
+	if (base->base)
+		event_base_free(base->base);
 	safe_efree(base);
 }
 /* }}} */
@@ -181,15 +185,15 @@ ZEND_RSRC_DTOR_FUNC(_php_bufferevent_dtor) /* {{{ */
 	if (!bevent)
 		return;
 
+	zval_ptr_dtor(&bevent->readcb);
+	zval_ptr_dtor(&bevent->writecb);
+	zval_ptr_dtor(&bevent->errorcb);
+	zval_ptr_dtor(&bevent->arg);
+	bufferevent_free(bevent->bevent);
+
 	if (bevent->base) {
 		base_id = bevent->base->rsrc_id;
 		--bevent->base->events;
-
-		zval_ptr_dtor(&bevent->readcb);
-		zval_ptr_dtor(&bevent->writecb);
-		zval_ptr_dtor(&bevent->errorcb);
-		zval_ptr_dtor(&bevent->arg);
-		bufferevent_free(bevent->bevent);
 
 		if (base_id) {
 			zend_list_close(Z_RES_P(base_id));
