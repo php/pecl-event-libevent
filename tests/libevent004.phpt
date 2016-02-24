@@ -1,4 +1,4 @@
- --TEST--
+--TEST--
 pecl/libevent - bug https://github.com/expressif/pecl-event-libevent/issues/9
 --SKIPIF--
 <?php
