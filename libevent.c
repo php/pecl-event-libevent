@@ -80,7 +80,6 @@ typedef struct _php_event_t { /* {{{ */
 #ifdef ZTS
 	void ***thread_ctx;
 #endif
-	int in_free;
 } php_event_t;
 /* }}} */
 
@@ -146,13 +145,6 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 
 	if (!event) return;
 
-	if (event->in_free) {
-		safe_efree(event);
-		return;
-	}
-
-	event->in_free = 1;
-
 	if (event->base) {
 		base_id = event->base->rsrc_id;
 		--event->base->events;
@@ -160,9 +152,11 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 	if (Z_TYPE_P(&event->stream_id) != IS_NULL) {
 		zend_list_close(Z_RES_P(&event->stream_id));
 	}
-	event_del(event->event);
+	zval_ptr_dtor(&event->stream_id);
 
 	_php_event_callback_free(event->callback);
+	event_del(event->event);
+	
 	safe_efree(event->event);
 	safe_efree(event);
 
@@ -361,9 +355,9 @@ static PHP_FUNCTION(event_base_new)
 
 	base->events = 0;
 
-	RETVAL_RES(zend_register_resource(base, le_event_base));
-	base->rsrc_id = return_value;
+	ZVAL_RES(return_value, zend_register_resource(base, le_event_base));
 	Z_TRY_ADDREF_P(return_value);
+	base->rsrc_id = return_value;
 }
 /* }}} */
 
@@ -576,13 +570,12 @@ static PHP_FUNCTION(event_new)
 	event->rsrc_id = NULL;
 	event->callback = NULL;
 	event->base = NULL;
-	event->in_free = 0;
 	ZVAL_NULL(&event->stream_id);
 	TSRMLS_SET_CTX(event->thread_ctx);
 
-	RETVAL_RES(zend_register_resource(event, le_event));
-	event->rsrc_id = return_value;
+	ZVAL_RES(return_value, zend_register_resource(event, le_event));
 	Z_TRY_ADDREF_P(return_value);
+	event->rsrc_id = return_value;
 }
 /* }}} */
 
@@ -600,13 +593,14 @@ static PHP_FUNCTION(event_free)
 	if (!(event = ZVAL_TO_EVENT(zevent)))
 		return;
 
-	event->in_free = 1;
 	if (event->base) {
 		--event->base->events;
 		event->base = NULL;
 	}
+
 	event_del (event->event);
-	zend_list_close(Z_RES_P(zevent));
+	zend_list_close(Z_RES_P(event->rsrc_id));
+
 }
 /* }}} */
 
@@ -998,9 +992,9 @@ static PHP_FUNCTION(event_buffer_new)
 
 	TSRMLS_SET_CTX(bevent->thread_ctx);
 
-	RETVAL_RES(zend_register_resource(bevent, le_bufferevent));
-	bevent->rsrc_id = return_value;
+	ZVAL_RES(return_value, zend_register_resource(bevent, le_bufferevent));
 	Z_TRY_ADDREF_P(return_value);
+	bevent->rsrc_id = return_value;
 }
 /* }}} */
 
