@@ -98,13 +98,13 @@ typedef struct _php_bufferevent_t { /* {{{ */
 /* }}} */
 
 #define ZVAL_TO_BASE(zval) \
-	(php_event_base_t *)zend_fetch_resource_ex(zval, "event base", le_event_base)
+	(php_event_base_t *)zend_fetch_resource2_ex(zval, "event base", le_event_base, le_event_base)
 
 #define ZVAL_TO_EVENT(zval) \
-	(php_event_t *)zend_fetch_resource_ex(zval, "event", le_event)
+	(php_event_t *)zend_fetch_resource2_ex(zval, "event", le_event, le_event)
 
 #define ZVAL_TO_BEVENT(zval) \
-	(php_bufferevent_t *)zend_fetch_resource_ex(zval, "buffer event", le_bufferevent)
+	(php_bufferevent_t *)zend_fetch_resource2_ex(zval, "buffer event", le_bufferevent, le_bufferevent)
 
 /* {{{ internal funcs */
 
@@ -355,9 +355,8 @@ static PHP_FUNCTION(event_base_new)
 
 	base->events = 0;
 
-	ZVAL_RES(return_value, zend_register_resource(base, le_event_base));
-	Z_TRY_ADDREF_P(return_value);
-	base->rsrc_id = return_value;
+	base->rsrc_id = zend_list_insert(base, le_event_base);
+	ZVAL_COPY_VALUE(return_value, base->rsrc_id);
 }
 /* }}} */
 
@@ -403,7 +402,7 @@ static PHP_FUNCTION(event_base_free)
 		RETURN_FALSE;
 	}
 
-	zend_list_close(Z_RES_P(zbase));
+	zend_list_close(Z_RES_P(base->rsrc_id));
 }
 /* }}} */
 
@@ -573,9 +572,8 @@ static PHP_FUNCTION(event_new)
 	ZVAL_NULL(&event->stream_id);
 	TSRMLS_SET_CTX(event->thread_ctx);
 
-	ZVAL_RES(return_value, zend_register_resource(event, le_event));
-	Z_TRY_ADDREF_P(return_value);
-	event->rsrc_id = return_value;
+	event->rsrc_id = zend_list_insert(event, le_event);
+	ZVAL_COPY_VALUE(return_value, event->rsrc_id);
 }
 /* }}} */
 
@@ -992,9 +990,8 @@ static PHP_FUNCTION(event_buffer_new)
 
 	TSRMLS_SET_CTX(bevent->thread_ctx);
 
-	ZVAL_RES(return_value, zend_register_resource(bevent, le_bufferevent));
-	Z_TRY_ADDREF_P(return_value);
-	bevent->rsrc_id = return_value;
+	bevent->rsrc_id = zend_list_insert(bevent, le_bufferevent);
+	ZVAL_COPY_VALUE(return_value, bevent->rsrc_id);
 }
 /* }}} */
 
@@ -1016,7 +1013,7 @@ static PHP_FUNCTION(event_buffer_free)
 		--bevent->base->events;
 		bevent->base = NULL;
 	}
-	zend_list_close(Z_RES_P(zbevent));
+	zend_list_close(Z_RES_P(bevent->rsrc_id));
 }
 /* }}} */
 
