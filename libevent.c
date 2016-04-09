@@ -155,13 +155,14 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 	zval_ptr_dtor(&event->stream_id);
 
 	_php_event_callback_free(event->callback);
+
+
 	event_del(event->event);
-	
 	safe_efree(event->event);
 	safe_efree(event);
 
 	if (base_id) {
-		zend_list_close(Z_RES_P(base_id));
+		zend_list_delete(Z_RES_P(base_id));
 	}
 }
 /* }}} */
@@ -190,7 +191,7 @@ ZEND_RSRC_DTOR_FUNC(_php_bufferevent_dtor) /* {{{ */
 		--bevent->base->events;
 
 		if (base_id) {
-			zend_list_close(Z_RES_P(base_id));
+			zend_list_delete(Z_RES_P(base_id));
 		}
 	}
 
