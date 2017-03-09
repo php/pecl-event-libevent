@@ -4,6 +4,7 @@ pecl/libevent - bug https://github.com/expressif/pecl-event-libevent/issues/8
 <?php
 if (!extension_loaded("libevent")) die("skip pecl/libevent needed");
 --FILE--
+<?php
 $base = event_base_new();
 $event = event_new();
 
