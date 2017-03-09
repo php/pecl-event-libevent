@@ -20,3 +20,4 @@ var_dump(event_base_loop($base));
 bool(false)
 bool(false)
 int(1)
+[warn] event_del: event has no event_base set.
