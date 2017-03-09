@@ -695,8 +695,8 @@ static PHP_FUNCTION(event_set)
 #endif
 			}
 		} else if (Z_TYPE_P(fd) == IS_LONG) {
-			file_desc = Z_LVAL_P(fd);
-			if (file_desc < 0) {
+			file_desc = Z_RES_P(fd);
+			if (!file_desc) {
 				php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
 				RETURN_FALSE;
 			}
