@@ -358,6 +358,7 @@ static PHP_FUNCTION(event_base_new)
 
 	base->rsrc_id = zend_list_insert(base, le_event_base);
 	ZVAL_COPY_VALUE(return_value, base->rsrc_id);
+	Z_ADDREF_P(base->rsrc_id);
 }
 /* }}} */
 
@@ -513,7 +514,7 @@ static PHP_FUNCTION(event_base_set)
 			if (old_base) {
 				--old_base->events;
 				if (old_base->rsrc_id != NULL) {
-					zend_list_close(Z_RES_P(old_base->rsrc_id));
+					zend_list_delete(Z_RES_P(old_base->rsrc_id));
 				}
 			}
 		}
@@ -594,6 +595,9 @@ static PHP_FUNCTION(event_free)
 
 	if (event->base) {
 		--event->base->events;
+		if (event->base->rsrc_id) {
+			zend_list_delete(Z_RES_P(event->base->rsrc_id));
+		}
 		event->base = NULL;
 	}
 
@@ -668,8 +672,8 @@ static PHP_FUNCTION(event_set)
 	if (events & EV_SIGNAL) {
 		/* signal support */
 		convert_to_long_ex(fd);
-		file_desc = Z_RES_P(fd);
-		if (!file_desc) {
+		file_desc = Z_LVAL_P(fd);
+		if (file_desc < 0 || file_desc >= NSIG) {
 			php_error_docref(NULL, E_WARNING, "invalid signal passed");
 			RETURN_FALSE;
 		}
@@ -1016,6 +1020,9 @@ static PHP_FUNCTION(event_buffer_free)
 	
 	if (bevent->base) {
 		--bevent->base->events;
+		if (bevent->base->rsrc_id) {
+			zend_list_delete(Z_RES_P(bevent->base->rsrc_id));
+		}
 		bevent->base = NULL;
 	}
 	zend_list_close(Z_RES_P(bevent->rsrc_id));
@@ -1053,7 +1060,7 @@ static PHP_FUNCTION(event_buffer_base_set)
 			if (old_base) {
 				--old_base->events;
 				if (old_base->rsrc_id) {
-					zend_list_close(Z_RES_P(old_base->rsrc_id));
+					zend_list_delete(Z_RES_P(old_base->rsrc_id));
 				}
 			}
 		}
