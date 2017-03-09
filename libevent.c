@@ -668,8 +668,8 @@ static PHP_FUNCTION(event_set)
 	if (events & EV_SIGNAL) {
 		/* signal support */
 		convert_to_long_ex(fd);
-		file_desc = Z_LVAL_P(fd);
-		if (file_desc < 0 || file_desc >= NSIG) {
+		file_desc = Z_RES_P(fd);
+		if (!file_desc) {
 			php_error_docref(NULL, E_WARNING, "invalid signal passed");
 			RETURN_FALSE;
 		}
@@ -926,7 +926,11 @@ static PHP_FUNCTION(event_buffer_new)
 #endif
 		}
 	} else if (Z_TYPE_P(zfd) == IS_LONG) {
-		fd = Z_LVAL_P(zfd);
+		fd = Z_RES_P(zfd);
+		if (!fd) {
+			php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
+			RETURN_FALSE;
+		}
 	} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
 		php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
@@ -1293,7 +1297,11 @@ static PHP_FUNCTION(event_buffer_fd_set)
 #endif
 		}
 	} else if (Z_TYPE_P(zfd) == IS_LONG) {
-		fd = Z_LVAL_P(zfd);
+		fd = Z_RES_P(zfd);
+		if (!fd) {
+			php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
+			RETURN_FALSE;
+		}
 	} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
 		php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream or socket resource or a file descriptor of type long");
