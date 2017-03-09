@@ -47,12 +47,12 @@ unset($ev2);
 bool(true)
 bool(true)
 bool(true)
-int(0)
 string(1) "0"
-bool(true)
-bool(true)
-bool(true)
-bool(true)
 int(0)
+bool(true)
+bool(true)
+bool(true)
+bool(true)
 string(1) "1"
+int(0)
 bool(true)
