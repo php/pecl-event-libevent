@@ -31,6 +31,7 @@ var_dump(event_base_set($ev1, $base));
 var_dump(event_add($ev1));
 var_dump(event_base_loop($base, EVLOOP_ONCE));
 var_dump(event_del($ev1));
+unset($ev1);
 
 // second event reader
 $ev2 = event_new();
@@ -39,7 +40,7 @@ var_dump(event_base_set($ev2, $base));
 var_dump(event_add($ev2));
 var_dump(event_base_loop($base, EVLOOP_ONCE));
 var_dump(event_del($ev2));
-
+unset($ev2);
 
 ?>
 --EXPECTF--
