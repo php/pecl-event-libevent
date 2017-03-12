@@ -31,6 +31,7 @@ var_dump(event_base_set($ev1, $base));
 var_dump(event_add($ev1));
 var_dump(event_base_loop($base, EVLOOP_ONCE));
 var_dump(event_del($ev1));
+event_free($ev1);
 unset($ev1);
 
 // second event reader
