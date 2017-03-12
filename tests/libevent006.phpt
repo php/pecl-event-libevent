@@ -57,7 +57,7 @@ bool(true)
 NULL
 resource(6) of type (stream)
 
-2n try
+2nd try
 bool(true)
 bool(true)
 bool(true)
