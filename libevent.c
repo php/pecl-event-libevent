@@ -602,7 +602,7 @@ static PHP_FUNCTION(event_free)
 	}
 
 	event_del (event->event);
-	zend_list_close(Z_RES_P(event->rsrc_id));
+	zend_list_delete(Z_RES_P(event->rsrc_id));
 
 }
 /* }}} */
