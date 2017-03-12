@@ -1,12 +1,26 @@
 ARG_WITH("libevent", "libevent support", "no");
+ARG_ENABLE("libevent-sockets", "whether to enable libevent sockets support", "yes");
 
 if (PHP_LIBEVENT != "no") {
 	if (CHECK_HEADER_ADD_INCLUDE("event2/event.h", "CFLAGS_LIBEVENT", PHP_PHP_BUILD + "\\include;" + PHP_LIBEVENT)
         && CHECK_LIB("libevent.lib", "libevent", PHP_PHP_BUILD + "\\lib;" + PHP_LIBEVENT))
 	{
-		ADD_EXTENSION_DEP('libevent', 'sockets');
 		EXTENSION('libevent', 'libevent.c');
 		AC_DEFINE('HAVE_LIBEVENT', 1);
+		if (PHP_LIBEVENT_SOCKETS != "no") {
+			ADD_EXTENSION_DEP("libevent", "sockets");
+			ADD_FLAG("CFLAGS_LIBEVENT", ' /D HAVE_SOCKETS ');
+			MESSAGE("\tlibevent sockets support enabled");
+		} else {
+			if (typeof(PHP_SOCKETS) != "undefined" && PHP_SOCKETS != "no") {
+				WARNING("libevent sockets support enabled; sockets extension found");
+				ADD_EXTENSION_DEP("libevent", "sockets");
+				ADD_FLAG("CFLAGS_LIBEVENT", ' /D HAVE_SOCKETS ');
+				MESSAGE("\tlibevent sockets support enabled");
+			} else {
+				MESSAGE("\tlibevent sockets support not enabled");
+			}
+		}
 	} else {
 		WARNING("libevent not enabled; libraries and headers not found");
 	}
