@@ -31,16 +31,19 @@ var_dump(event_base_set($ev1, $base));
 var_dump(event_add($ev1));
 var_dump(event_base_loop($base, EVLOOP_ONCE));
 var_dump(event_del($ev1));
-event_free($ev1);
+var_dump(event_free($ev1));
 unset($ev1);
+var_dump($fd);
 
 // second event reader
+echo "\n2nd try\n";
 $ev2 = event_new();
 var_dump(event_set($ev2, $fd, EV_READ | EV_PERSIST, "foo", array($ev2, $base)));
 var_dump(event_base_set($ev2, $base));
 var_dump(event_add($ev2));
 var_dump(event_base_loop($base, EVLOOP_ONCE));
 var_dump(event_del($ev2));
+var_dump(event_free($ev2));
 unset($ev2);
 
 ?>
@@ -51,9 +54,14 @@ bool(true)
 string(1) "0"
 int(0)
 bool(true)
+NULL
+resource(6) of type (stream)
+
+2n try
 bool(true)
 bool(true)
 bool(true)
 string(1) "1"
 int(0)
 bool(true)
+NULL
