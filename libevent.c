@@ -150,7 +150,7 @@ ZEND_RSRC_DTOR_FUNC(_php_event_dtor) /* {{{ */
 		--event->base->events;
 	}
 	if (Z_TYPE_P(&event->stream_id) != IS_NULL) {
-		zend_list_close(Z_RES_P(&event->stream_id));
+		zend_list_delete(Z_RES_P(&event->stream_id));
 	}
 	zval_ptr_dtor(&event->stream_id);
 
