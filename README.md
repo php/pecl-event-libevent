@@ -19,6 +19,24 @@ This extension requires [» libevent](http://libevent.org/) library. Minimal req
 
 Information for installing this PECL extension may be found in the manual chapter titled [Installation of PECL extensions](http://php.net/manual/en/install.pecl.php). Additional information such as new releases, downloads, source files, maintainer information, and a CHANGELOG, can be located here: » http://pecl.php.net/package/libevent.
 
+## Compile from sources
+
+Pre-requisites (only for linux) :
+
+```sh
+sudo apt-get install php7.0-dev gcc make libevent-dev
+```
+
+Compile sources :
+
+```sh
+git clone https://github.com/expressif/pecl-event-libevent.git
+cd pecl-event-libevent
+phpize
+./configure
+make && sudo make install
+```
+
 ## Predefined Constants
 
 The constants below are defined by this extension, and will only be available when the extension has either been compiled into PHP or dynamically loaded at runtime.
