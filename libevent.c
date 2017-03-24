@@ -668,7 +668,10 @@ static PHP_FUNCTION(event_set)
 	if (!(event = ZVAL_TO_EVENT(zevent)))
 		RETURN_FALSE;
 
-	if (events & EV_SIGNAL) {
+	if (events & EV_TIMEOUT) {
+		file_desc = -1;
+		fd = 0;
+	} else if (events & EV_SIGNAL) {
 		/* signal support */
 		convert_to_long_ex(fd);
 		file_desc = Z_LVAL_P(fd);
@@ -735,7 +738,7 @@ static PHP_FUNCTION(event_set)
 	event->callback = callback;
 	if (events & EV_SIGNAL) {
 		ZVAL_NULL(&event->stream_id);
-	} else {
+	} else if (fd) {
 		ZVAL_COPY(&event->stream_id, fd);
 	}
 
