@@ -677,6 +677,15 @@ static PHP_FUNCTION(event_set)
 			RETURN_FALSE;
 		}
 	} else {
+
+		if (Z_TYPE_P(fd) == IS_LONG) {
+			fd = zend_hash_index_find(&EG(regular_list), Z_RES_P(fd));
+			if (!fd) {
+				php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
+				RETURN_FALSE;
+			}
+		}
+
 		if (Z_TYPE_P(fd) == IS_RESOURCE) {
 			stream = zend_fetch_resource2_ex(fd, NULL, php_file_le_stream(), php_file_le_pstream());
 			if (stream) {
@@ -696,12 +705,6 @@ static PHP_FUNCTION(event_set)
 				php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource");
 				RETURN_FALSE;
 #endif
-			}
-		} else if (Z_TYPE_P(fd) == IS_LONG) {
-			file_desc = Z_RES_P(fd);
-			if (!file_desc) {
-				php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
-				RETURN_FALSE;
 			}
 		} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
@@ -907,6 +910,14 @@ static PHP_FUNCTION(event_buffer_new)
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "zzzz|z", &zfd, &zreadcb, &zwritecb, &zerrorcb, &zarg) != SUCCESS) {
 		return;
 	}
+
+	if (Z_TYPE_P(zfd) == IS_LONG) {
+		zfd = zend_hash_index_find(&EG(regular_list), Z_RES_P(zfd));
+		if (!zfd) {
+			php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
+			RETURN_FALSE;
+		}
+	}
 	
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
 		stream = zend_fetch_resource2_ex(zfd, NULL, php_file_le_stream(), php_file_le_pstream());
@@ -927,12 +938,6 @@ static PHP_FUNCTION(event_buffer_new)
 			php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
 			RETURN_FALSE;
 #endif
-		}
-	} else if (Z_TYPE_P(zfd) == IS_LONG) {
-		fd = Z_RES_P(zfd);
-		if (!fd) {
-			php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
-			RETURN_FALSE;
 		}
 	} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
@@ -1282,6 +1287,14 @@ static PHP_FUNCTION(event_buffer_fd_set)
 	if(!(bevent= ZVAL_TO_BEVENT(zbevent)))
 		RETURN_FALSE;
 
+	if (Z_TYPE_P(zfd) == IS_LONG) {
+		zfd = zend_hash_index_find(&EG(regular_list), Z_RES_P(zfd));
+		if (!zfd) {
+			php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
+			RETURN_FALSE;
+		}
+	}
+
 	if (Z_TYPE_P(zfd) == IS_RESOURCE) {
 		stream = zend_fetch_resource2_ex(zfd, NULL, php_file_le_stream(), php_file_le_pstream());
 		if (stream) {
@@ -1301,12 +1314,6 @@ static PHP_FUNCTION(event_buffer_fd_set)
 			php_error_docref(NULL, E_WARNING, "fd argument must be valid PHP stream resource or a file descriptor of type long");
 			RETURN_FALSE;
 #endif
-		}
-	} else if (Z_TYPE_P(zfd) == IS_LONG) {
-		fd = Z_RES_P(zfd);
-		if (!fd) {
-			php_error_docref(NULL, E_WARNING, "invalid file descriptor passed");
-			RETURN_FALSE;
 		}
 	} else {
 #ifdef LIBEVENT_SOCKETS_SUPPORT
