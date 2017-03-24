@@ -4,6 +4,7 @@ pecl/libevent - bug https://github.com/expressif/pecl-event-libevent/issues/19
 <?php
 if (!extension_loaded("libevent")) die("skip pecl/libevent needed");
 --FILE--
+<?php
 class foo {
   public function checkConnection($socket)
   {
