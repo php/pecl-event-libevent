@@ -671,6 +671,7 @@ static PHP_FUNCTION(event_set)
 	if (events & EV_TIMEOUT) {
 		file_desc = -1;
 		fd = 0;
+		events = 0;
 	} else if (events & EV_SIGNAL) {
 		/* signal support */
 		convert_to_long_ex(fd);
@@ -736,9 +737,15 @@ static PHP_FUNCTION(event_set)
 
 	old_callback = event->callback;
 	event->callback = callback;
-	if (events & EV_SIGNAL) {
+
+	if (!fd) {
+		if (Z_TYPE_P(&event->stream_id) != IS_NULL) {
+			zend_list_close(Z_RES_P(&event->stream_id));
+			ZVAL_NULL(&event->stream_id);
+		}
+        } else if (events & EV_SIGNAL) {
 		ZVAL_NULL(&event->stream_id);
-	} else if (fd) {
+	} else {
 		ZVAL_COPY(&event->stream_id, fd);
 	}
 
@@ -748,7 +755,7 @@ static PHP_FUNCTION(event_set)
 		_php_event_callback_free(old_callback);
 	}
 
-	if (event->base) {
+	if (fd && event->base) {
 		ret = event_base_set(event->base->base, event->event);
 		if (ret != 0) {
 			RETURN_FALSE;
