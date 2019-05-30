@@ -355,8 +355,8 @@ static PHP_FUNCTION(event_base_new)
 
 	base->events = 0;
 
-	base->rsrc_id = zend_list_insert(base, le_event_base);
-	ZVAL_COPY_VALUE(return_value, base->rsrc_id);
+	ZVAL_COPY_VALUE(return_value, zend_list_insert(base, le_event_base));
+	base->rsrc_id = return_value;
 	Z_ADDREF_P(base->rsrc_id);
 }
 /* }}} */
@@ -573,8 +573,8 @@ static PHP_FUNCTION(event_new)
 	ZVAL_NULL(&event->stream_id);
 	TSRMLS_SET_CTX(event->thread_ctx);
 
-	event->rsrc_id = zend_list_insert(event, le_event);
-	ZVAL_COPY_VALUE(return_value, event->rsrc_id);
+	ZVAL_COPY_VALUE(return_value, zend_list_insert(event, le_event));
+	event->rsrc_id = return_value;
 }
 /* }}} */
 
