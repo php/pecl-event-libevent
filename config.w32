@@ -6,6 +6,13 @@ if (PHP_LIBEVENT != "no") {
 	{
 		EXTENSION('libevent', 'libevent.c');
 		AC_DEFINE('HAVE_LIBEVENT', 1);
+		if (typeof(PHP_SOCKETS) != "undefined" && PHP_SOCKETS != "no") {
+			ADD_EXTENSION_DEP("libevent", "sockets");
+			ADD_FLAG("CFLAGS_LIBEVENT", ' /D HAVE_SOCKETS ');
+			MESSAGE("\tlibevent sockets support enabled");
+		} else {
+			MESSAGE("\tlibevent sockets support not enabled");
+		}
 	} else {
 		WARNING("libevent not enabled; libraries and headers not found");
 	}
